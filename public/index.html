@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The クールソウルゲーム Online Beta</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero-bar">
+      <div>
+        <h1>The クールソウルゲーム</h1>
+        <p class="subtitle">理不尽に負けろ。今度は本当に別々の端末で。</p>
+      </div>
+      <div class="hero-badges">
+        <span class="pill beta">ONLINE BETA 1.0</span>
+        <span class="pill online-pill"><span class="online-dot"></span> サーバー同期</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="entryScreen" class="screen active">
+        <div class="online-entry-grid">
+          <div class="panel online-entry-card">
+            <div class="entry-kicker">HOST</div>
+            <h2>ルームを作る</h2>
+            <p>あなたがホスト。3～8人揃ったらゲーム開始よ。</p>
+            <label>プレイヤー名</label>
+            <input id="createName" maxlength="16" placeholder="遠坂凛" />
+            <button id="createRoomBtn" class="primary large">ルーム作成</button>
+          </div>
+          <div class="panel online-entry-card">
+            <div class="entry-kicker pink">JOIN</div>
+            <h2>ルームに参加</h2>
+            <p>ホストから6文字の参加コードをもらって入力。</p>
+            <label>プレイヤー名</label>
+            <input id="joinName" maxlength="16" placeholder="アーチャー" />
+            <label>ルームコード</label>
+            <input id="joinCode" maxlength="6" class="room-code-input" placeholder="ABC234" />
+            <button id="joinRoomBtn" class="secondary large">参加する</button>
+          </div>
+        </div>
+        <div id="entryError" class="entry-error hidden"></div>
+      </section>
+
+      <section id="lobbyScreen" class="screen">
+        <div class="panel lobby-panel">
+          <div class="lobby-head">
+            <div>
+              <div class="entry-kicker">ONLINE ROOM</div>
+              <h2>参加コード <button id="copyCodeBtn" class="room-code-button"><span id="roomCodeText">------</span></button></h2>
+              <p>このコードを一緒に遊ぶ人へ送って。全員ブラウザで同じサーバーへアクセスするのよ。</p>
+            </div>
+            <div id="lobbyConnection" class="connection-badge">接続中</div>
+          </div>
+          <div id="lobbyPlayers" class="lobby-players"></div>
+          <div class="lobby-foot">
+            <div class="lobby-help">3～8人 / 初期手札5枚 / 92種類×3枚＝276枚 / 3ポイント先取</div>
+            <button id="startOnlineBtn" class="primary large">ゲーム開始</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen">
+        <div class="game-topbar panel">
+          <div class="brand-block">
+            <div class="brand-title">The クールソウルゲーム</div>
+            <div class="brand-sub"><span id="connectionDot" class="online-dot"></span> ROOM <strong id="gameRoomCode">------</strong></div>
+          </div>
+          <div class="top-info-grid">
+            <div class="info-chip"><span class="label">ROUND</span><strong id="roundNumber">1</strong></div>
+            <div class="info-chip hot"><span class="label">勝利条件</span><strong>3ポイント先取</strong></div>
+            <div class="info-chip"><span class="label">生存</span><strong id="playerCount">0/0</strong></div>
+            <div class="info-chip"><span class="label">山札</span><strong id="deckCount">276</strong></div>
+            <div class="info-chip"><span class="label">捨て札</span><strong id="discardCount">0</strong></div>
+            <div class="info-chip"><span class="label">カード使用</span><strong id="playCount">0/1</strong></div>
+          </div>
+        </div>
+
+        <section class="player-strip panel">
+          <div id="playerList" class="player-list"></div>
+        </section>
+
+        <div class="game-layout">
+          <aside class="panel log-panel">
+            <div class="panel-title-row"><h2>ゲームログ</h2><span class="small-tag">全員同期</span></div>
+            <div id="eventLog" class="event-log"></div>
+          </aside>
+
+          <section class="panel main-field">
+            <div class="field-head">
+              <div>
+                <div class="field-label">現在のターン</div>
+                <div id="turnBanner" class="turn-banner">--</div>
+              </div>
+              <div class="field-meta">
+                <div class="meta-box"><span class="meta-label">ドロー</span><strong id="drawState">未実行</strong></div>
+                <div class="meta-box"><span class="meta-label">通信</span><strong id="syncState">同期済み</strong></div>
+              </div>
+            </div>
+
+            <div class="spotlight-wrap">
+              <div class="spotlight-label">メインフィールド</div>
+              <div id="spotlightCard" class="spotlight-card"></div>
+            </div>
+
+            <div class="field-controls">
+              <button id="drawBtn" class="secondary">1枚引く</button>
+              <button id="endTurnBtn" class="ghost danger-btn">ターン終了</button>
+            </div>
+
+            <div class="chat-console">
+              <div class="chat-console-head"><strong>ゲーム内チャット</strong><span>会話系カードの判定対象</span></div>
+              <div class="chat-row">
+                <input id="chatInput" maxlength="100" placeholder="発言には気をつけなさい（本当に）" />
+                <button id="chatSendBtn" class="secondary">送信</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel status-panel">
+            <div class="status-block">
+              <div class="panel-title-row"><h2>現在の状況</h2><span class="small-tag">ルール / TRAP</span></div>
+              <h3>現在のルール</h3>
+              <div id="ruleList" class="rule-list"></div>
+            </div>
+            <div class="status-block trap-block">
+              <h3>TRAP</h3>
+              <div id="activeTrap" class="active-trap"></div>
+              <div class="trap-history-title">これまでのTRAP</div>
+              <div id="trapHistory" class="trap-history"></div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="panel hand-zone">
+          <div class="hand-head">
+            <div>
+              <h2>あなたの手札</h2>
+              <div id="handMeta" class="hand-meta">初期手札5枚 / 通常系は1ターン1枚 / 割込は別枠</div>
+            </div>
+            <button id="togglePrivacyBtn" class="ghost">手札を隠す</button>
+          </div>
+          <div class="hand-layout">
+            <div id="hand" class="hand"></div>
+            <aside class="action-panel">
+              <div class="action-label">選択中のカード</div>
+              <div id="selectedCardPreview" class="selected-card-preview">カードを1枚選んで。</div>
+              <button id="playSelectedBtn" class="primary large">このカードを使う</button>
+              <div id="actionHint" class="action-hint">自分のターンになるまで手札でも眺めてなさい。</div>
+            </aside>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="fxLayer" class="fx-layer" aria-hidden="true">
+    <div id="interruptFx" class="interrupt-fx hidden">
+      <div class="interrupt-eyebrow">INTERRUPT</div>
+      <div class="interrupt-title">割り込み発生！</div>
+      <div id="interruptChain" class="interrupt-chain"></div>
+    </div>
+    <div id="eliminationFx" class="elimination-fx hidden">
+      <div class="elimination-skull">☠</div>
+      <div class="elimination-title">脱落</div>
+      <div id="eliminationName" class="elimination-name"></div>
+      <div id="eliminationReason" class="elimination-reason"></div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="modalTitle"></h2></div>
+      <div id="modalBody"></div>
+      <div id="modalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

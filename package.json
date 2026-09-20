@@ -1,0 +1,12 @@
+{
+  "name": "the-cool-soul-game-online-beta",
+  "version": "1.0.0-beta",
+  "private": true,
+  "description": "The クールソウルゲーム Online Beta",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
