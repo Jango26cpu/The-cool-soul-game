@@ -7,6 +7,9 @@ const gameScreen = $('#gameScreen');
 const entryError = $('#entryError');
 const lobbyPlayers = $('#lobbyPlayers');
 const startOnlineBtn = $('#startOnlineBtn');
+const testOnlineBtn = $('#testOnlineBtn');
+const bgmToggleBtn = $('#bgmToggleBtn');
+const joinCodeInput = $('#joinCode');
 const roomCodeText = $('#roomCodeText');
 const gameRoomCode = $('#gameRoomCode');
 const playerList = $('#playerList');
@@ -41,6 +44,95 @@ let selectedUid = null;
 let privacyMode = false;
 let currentPromptId = null;
 let fxTimer = null;
+
+// --- ゆったりピアノ風BGM（Web Audioで生成。音源ファイル不要） ---
+let bgmEnabled = true;
+let audioCtx = null;
+let bgmMaster = null;
+let bgmTimer = null;
+let bgmPhrase = 0;
+
+function midiToHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function playPianoNote(midi, when, duration = 2.8, volume = 0.11) {
+  if (!audioCtx || !bgmMaster) return;
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  osc1.type = 'sine';
+  osc2.type = 'triangle';
+  osc1.frequency.setValueAtTime(midiToHz(midi), when);
+  osc2.frequency.setValueAtTime(midiToHz(midi) * 2, when);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1700, when);
+  filter.Q.setValueAtTime(0.6, when);
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(volume, when + 0.018);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.35), when + 0.45);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  osc1.connect(gain);
+  osc2.connect(gain);
+  gain.connect(filter);
+  filter.connect(bgmMaster);
+  osc1.start(when); osc2.start(when);
+  osc1.stop(when + duration + 0.05); osc2.stop(when + duration + 0.05);
+}
+function scheduleBgmPhrase() {
+  if (!bgmEnabled || !audioCtx || audioCtx.state !== 'running') return;
+  const progressions = [
+    [48, 55, 60, 64, 67], // Cmaj7
+    [45, 52, 57, 60, 64], // Am7
+    [41, 48, 53, 57, 60], // Fmaj7
+    [43, 50, 55, 57, 62], // Gsus2
+  ];
+  const chord = progressions[bgmPhrase % progressions.length];
+  const start = audioCtx.currentTime + 0.08;
+  playPianoNote(chord[0], start, 5.8, 0.09);
+  [0, 1.35, 2.7, 4.05].forEach((offset, i) => {
+    playPianoNote(chord[1 + (i % 4)], start + offset, 2.5, 0.095);
+    if (i === 2) playPianoNote(chord[4], start + offset + 0.45, 2.1, 0.06);
+  });
+  bgmPhrase++;
+}
+async function ensureBgmStarted() {
+  if (!bgmEnabled) return;
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+      bgmMaster = audioCtx.createGain();
+      bgmMaster.gain.value = 0.22;
+      const delay = audioCtx.createDelay(2.0);
+      const feedback = audioCtx.createGain();
+      const wet = audioCtx.createGain();
+      delay.delayTime.value = 0.24;
+      feedback.gain.value = 0.15;
+      wet.gain.value = 0.16;
+      bgmMaster.connect(audioCtx.destination);
+      bgmMaster.connect(delay);
+      delay.connect(feedback); feedback.connect(delay);
+      delay.connect(wet); wet.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    if (!bgmTimer) {
+      scheduleBgmPhrase();
+      bgmTimer = setInterval(scheduleBgmPhrase, 5500);
+    }
+  } catch (_) {}
+}
+async function setBgmEnabled(enabled) {
+  bgmEnabled = !!enabled;
+  bgmToggleBtn.textContent = bgmEnabled ? '♪ BGM ON' : '♪ BGM OFF';
+  bgmToggleBtn.setAttribute('aria-pressed', String(bgmEnabled));
+  bgmToggleBtn.classList.toggle('off', !bgmEnabled);
+  if (bgmEnabled) {
+    await ensureBgmStarted();
+  } else {
+    if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; }
+    if (audioCtx?.state === 'running') await audioCtx.suspend().catch(() => {});
+  }
+}
 
 const storageKey = 'coolSoulOnlineSession';
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
@@ -150,8 +242,11 @@ function renderLobby() {
     d.innerHTML = `<div class="lobby-avatar">${i + 1}</div><div><strong>${esc(p.name)}</strong><span>${p.id === state.hostId ? 'HOST' : 'PLAYER'} · ${p.connected ? '接続中' : '切断中'}</span></div>${p.id === state.me ? '<em>YOU</em>' : ''}`;
     lobbyPlayers.appendChild(d);
   });
-  startOnlineBtn.style.display = state.me === state.hostId ? 'inline-flex' : 'none';
+  const isHost = state.me === state.hostId;
+  startOnlineBtn.style.display = isHost ? 'inline-flex' : 'none';
   startOnlineBtn.disabled = !state.canStart;
+  testOnlineBtn.style.display = isHost && state.players.length === 2 ? 'inline-flex' : 'none';
+  testOnlineBtn.disabled = !state.canTestStart;
 }
 function renderGame() {
   gameRoomCode.textContent = state.roomCode;
@@ -323,9 +418,31 @@ async function action(action, payload = {}) {
 
 $('#createRoomBtn').onclick = createRoom;
 $('#joinRoomBtn').onclick = joinRoom;
-$('#joinCode').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+
+// IME変換中に value を書き換えると、環境によって YY / HH のように二重入力されることがある。
+// 変換中は触らず、確定後だけ正規化する。
+let joinCodeComposing = false;
+function normalizeJoinCode() {
+  if (!joinCodeInput || joinCodeComposing) return;
+  const normalized = joinCodeInput.value
+    .normalize('NFKC')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 6);
+  if (joinCodeInput.value !== normalized) joinCodeInput.value = normalized;
+}
+joinCodeInput.addEventListener('compositionstart', () => { joinCodeComposing = true; });
+joinCodeInput.addEventListener('compositionend', () => { joinCodeComposing = false; normalizeJoinCode(); });
+joinCodeInput.addEventListener('input', normalizeJoinCode);
+joinCodeInput.addEventListener('paste', () => setTimeout(normalizeJoinCode, 0));
+
 $('#copyCodeBtn').onclick = async () => { if (state?.roomCode) { await navigator.clipboard?.writeText(state.roomCode).catch(() => {}); showToast(`参加コード ${state.roomCode} をコピーしたわ。`); } };
 startOnlineBtn.onclick = async () => { try { await post('/api/start', session); } catch (e) { showToast(e.message); } };
+testOnlineBtn.onclick = async () => { try { await post('/api/start', { ...session, testMode: true }); } catch (e) { showToast(e.message); } };
+
+bgmToggleBtn.onclick = () => setBgmEnabled(!bgmEnabled);
+// ブラウザの自動再生制限対策：最初のユーザー操作後に静かなBGMを開始。
+document.addEventListener('pointerdown', () => { if (bgmEnabled) ensureBgmStarted(); }, { once: true, capture: true });
 drawBtn.onclick = () => action('draw');
 endTurnBtn.onclick = () => action('endTurn');
 playSelectedBtn.onclick = () => selectedUid && action('playCard', { uid: selectedUid });

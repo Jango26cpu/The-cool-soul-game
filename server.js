@@ -238,6 +238,7 @@ function publicState(room, viewerId) {
       me: viewerId,
       players: room.players.map((p) => ({ id: p.id, name: p.name, connected: p.connected })),
       canStart: viewerId === room.hostId && room.players.length >= 3,
+      canTestStart: viewerId === room.hostId && room.players.length === 2,
     };
   }
   const g = room.game;
@@ -347,8 +348,9 @@ function eliminationFx(room, player, reason) {
   pushFx(room, { type: 'elimination', playerId: player.id, name: player.name, reason });
 }
 
-function startGame(room) {
+function startGame(room, testMode = false) {
   room.status = 'playing';
+  room.testMode = !!testMode;
   room.players = room.players.map((p) => ({
     ...p,
     points: p.points || 0,
@@ -388,7 +390,7 @@ function startRound(room) {
     p.playedThisTurn = 0;
   });
   for (let n = 0; n < 5; n++) g.players.forEach((p) => { if (g.deck.length) p.hand.push(g.deck.pop()); });
-  log(room, `ラウンド${g.round}開始。全員5枚。通常・継続・特殊・TRAPは自分のターンに1枚、割込は条件成立時に別枠。`, 'win');
+  log(room, `ラウンド${g.round}開始。全員5枚。通常・継続・特殊・TRAPは自分のターンに1枚、割込は条件成立時に別枠。${room.testMode ? '【2人テストモード】' : ''}`, 'win');
   pushState(room);
 }
 async function ensureDeck(room) {
@@ -1391,9 +1393,14 @@ async function apiHandler(req, res, pathname) {
       const room = requireRoomAuth(body);
       if (room.hostId !== body.playerId) return json(res, 403, { error: 'ゲーム開始はホストだけよ。' });
       if (room.status !== 'lobby') return json(res, 409, { error: 'もう始まってるわ。' });
-      if (room.players.length < 3) return json(res, 409, { error: '3人以上必要よ。' });
-      startGame(room);
-      return json(res, 200, { ok: true });
+      const testMode = body.testMode === true;
+      if (testMode) {
+        if (room.players.length !== 2) return json(res, 409, { error: '2人テストモードは参加者がちょうど2人の時だけ使えるわ。' });
+      } else if (room.players.length < 3) {
+        return json(res, 409, { error: '正式ルールでは3人以上必要よ。2人ならテストモードを使って。' });
+      }
+      startGame(room, testMode);
+      return json(res, 200, { ok: true, testMode });
     }
     if (req.method === 'POST' && pathname === '/api/action') {
       const body = await readJson(req);

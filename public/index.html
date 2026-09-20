@@ -14,8 +14,9 @@
         <p class="subtitle">理不尽に負けろ。今度は本当に別々の端末で。</p>
       </div>
       <div class="hero-badges">
-        <span class="pill beta">ONLINE BETA 1.0</span>
+        <span class="pill beta">ONLINE BETA 1.0.2</span>
         <span class="pill online-pill"><span class="online-dot"></span> サーバー同期</span>
+        <button id="bgmToggleBtn" class="pill bgm-pill" type="button" aria-pressed="true">♪ BGM ON</button>
       </div>
     </header>
 
@@ -37,7 +38,7 @@
             <label>プレイヤー名</label>
             <input id="joinName" maxlength="16" placeholder="アーチャー" />
             <label>ルームコード</label>
-            <input id="joinCode" maxlength="6" class="room-code-input" placeholder="ABC234" />
+            <input id="joinCode" maxlength="6" class="room-code-input" placeholder="ABC234" inputmode="latin" lang="en" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="6文字のルームコード" />
             <button id="joinRoomBtn" class="secondary large">参加する</button>
           </div>
         </div>
@@ -56,8 +57,11 @@
           </div>
           <div id="lobbyPlayers" class="lobby-players"></div>
           <div class="lobby-foot">
-            <div class="lobby-help">3～8人 / 初期手札5枚 / 92種類×3枚＝276枚 / 3ポイント先取</div>
-            <button id="startOnlineBtn" class="primary large">ゲーム開始</button>
+            <div class="lobby-help">3～8人 / 初期手札5枚 / 92種類×3枚＝276枚 / 3ポイント先取<br><span class="test-note">開発用：2人なら「2人テスト開始」が使えるわ。</span></div>
+            <div class="lobby-start-actions">
+              <button id="testOnlineBtn" class="secondary large">2人テスト開始</button>
+              <button id="startOnlineBtn" class="primary large">ゲーム開始</button>
+            </div>
           </div>
         </div>
       </section>
