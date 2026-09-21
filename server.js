@@ -252,6 +252,9 @@ function publicState(room, viewerId) {
     round: g.round,
     gameOver: g.gameOver,
     roundLocked: g.roundLocked,
+    winnerId: g.winnerId || null,
+    finalStandings: g.finalStandings || [],
+    canRematch: !!g.gameOver && viewerId === room.hostId && room.players.every((p) => p.connected),
     direction: g.direction,
     handLimit: g.handLimit,
     deckCount: g.deck.length,
@@ -298,6 +301,9 @@ function pushNotice(room, playerId, payload) {
 }
 function pushFx(room, payload) {
   for (const res of room.streams.values()) if (!res.writableEnded) sseSend(res, 'fx', payload);
+}
+function pushRoomEnded(room, payload) {
+  for (const res of room.streams.values()) if (!res.writableEnded) sseSend(res, 'roomEnded', payload);
 }
 function pushPrompt(room, playerId, prompt) {
   const res = room.streams.get(playerId);
@@ -360,6 +366,7 @@ function startGame(room, testMode = false) {
     players: room.players,
     deck: [], discard: [], current: 0, round: 1, direction: 1, handLimit: null,
     drawnThisTurn: false, rules: [], gameOver: false, roundLocked: false,
+    winnerId: null, finalStandings: [], pendingRoundCheck: false,
     logs: [], activeTrap: null, trapHistory: [], lastPlayed: null, lastResolvedCard: null,
     soulLinks: [], bannedNames: [],
   };
@@ -691,6 +698,7 @@ async function playCard(room, playerId, uid) {
   p.playedThisTurn++;
   g.lastPlayed = { by: p.name, name: card.name, type: card.type, text: card.text, target: '' };
   log(room, `${p.name}が《${card.name}》を使用。`, card.type === 'TRAP' ? 'trap' : 'normal');
+  pushFx(room, { type: 'cardPlay', playerId: p.id, name: p.name, cardName: card.name });
   pushState(room);
 
   const canceled = await resolveCancelWindow(room, card, p);
@@ -1151,7 +1159,12 @@ async function awardRoundWin(room, winner, reason) {
   pushState(room);
   if (winner.points >= 3) {
     g.gameOver = true;
+    g.winnerId = winner.id;
+    g.finalStandings = [...g.players]
+      .sort((a, b) => (b.points - a.points) || (a.id === winner.id ? -1 : b.id === winner.id ? 1 : 0))
+      .map((p, index) => ({ rank: index + 1, id: p.id, name: p.name, points: p.points }));
     pushFx(room, { type: 'gameWin', name: winner.name, points: winner.points });
+    pushState(room);
     return;
   }
   setTimeout(() => {
@@ -1163,6 +1176,13 @@ async function awardRoundWin(room, winner, reason) {
 function checkRoundEnd(room) {
   const g = room.game;
   if (g.gameOver || g.roundLocked) return true;
+  // 割り込み・選択プロンプトが残っている間は勝敗確定を保留する。
+  // 割り込みチェーン途中の一時的な生存者数をラウンド終了と誤認しないための安全策。
+  if (room.prompts.size > 0) {
+    g.pendingRoundCheck = true;
+    return false;
+  }
+  g.pendingRoundCheck = false;
   const alive = alivePlayers(room);
   if (alive.length === 1) { awardRoundWin(room, alive[0], '最後の生存者'); return true; }
   if (alive.length === 0) {
@@ -1298,6 +1318,41 @@ async function advanceTurn(room) {
   pushState(room);
 }
 
+function resetForRematch(room) {
+  room.players.forEach((p) => {
+    p.points = 0;
+    p.hand = [];
+    p.alive = true;
+    p.away = false;
+    p.untargetable = false;
+    p.playedThisTurn = 0;
+  });
+  startGame(room, !!room.testMode);
+}
+
+function endRoom(room, reason, leaverName = '') {
+  if (!room || room.status === 'ended') return;
+  room.status = 'ended';
+  for (const [requestId, prompt] of room.prompts.entries()) {
+    clearTimeout(prompt.timer);
+    room.prompts.delete(requestId);
+    try { prompt.resolve(''); } catch (_) {}
+  }
+  room.busy = false;
+  pushRoomEnded(room, {
+    reason,
+    leaverName,
+    message: leaverName ? `${leaverName}が途中退出したため、ゲームを中断してタイトルへ戻ります。` : reason,
+  });
+  setTimeout(() => {
+    for (const res of room.streams.values()) {
+      if (!res.writableEnded) res.end();
+    }
+    room.streams.clear();
+    rooms.delete(room.code);
+  }, 3000);
+}
+
 function json(res, status, data) {
   const body = JSON.stringify(data);
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': Buffer.byteLength(body) });
@@ -1401,6 +1456,34 @@ async function apiHandler(req, res, pathname) {
       }
       startGame(room, testMode);
       return json(res, 200, { ok: true, testMode });
+    }
+    if (req.method === 'POST' && pathname === '/api/rematch') {
+      const body = await readJson(req);
+      const room = requireRoomAuth(body);
+      if (room.hostId !== body.playerId) return json(res, 403, { error: '再戦開始はホストだけよ。' });
+      if (room.status !== 'playing' || !room.game?.gameOver) return json(res, 409, { error: 'まだ再戦できる状態じゃないわ。' });
+      if (!room.players.every((p) => p.connected)) return json(res, 409, { error: '全員の接続が揃ってから再戦して。' });
+      resetForRematch(room);
+      return json(res, 200, { ok: true });
+    }
+    if (req.method === 'POST' && pathname === '/api/leave') {
+      const body = await readJson(req);
+      const room = requireRoomAuth(body);
+      const player = playerOf(room, body.playerId);
+      if (room.status === 'playing') {
+        endRoom(room, '途中退出によりゲーム中断', player?.name || 'プレイヤー');
+      } else {
+        if (player?.id === room.hostId) {
+          endRoom(room, 'ホストが退出したためルームを終了しました。', player?.name || 'ホスト');
+        } else if (player) {
+          room.players = room.players.filter((p) => p.id !== player.id);
+          const stream = room.streams.get(player.id);
+          if (stream && !stream.writableEnded) sseSend(stream, 'roomEnded', { reason: '退出', message: 'ルームから退出しました。' });
+          room.streams.delete(player.id);
+          pushState(room);
+        }
+      }
+      return json(res, 200, { ok: true });
     }
     if (req.method === 'POST' && pathname === '/api/action') {
       const body = await readJson(req);

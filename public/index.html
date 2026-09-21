@@ -14,7 +14,7 @@
         <p class="subtitle">理不尽に負けろ。今度は本当に別々の端末で。</p>
       </div>
       <div class="hero-badges">
-        <span class="pill beta">ONLINE BETA 1.0.2</span>
+        <span class="pill beta">ONLINE BETA 1.0.3</span>
         <span class="pill online-pill"><span class="online-dot"></span> サーバー同期</span>
         <button id="bgmToggleBtn" class="pill bgm-pill" type="button" aria-pressed="true">♪ BGM ON</button>
       </div>
@@ -70,13 +70,13 @@
         <div class="game-topbar panel">
           <div class="brand-block">
             <div class="brand-title">The クールソウルゲーム</div>
-            <div class="brand-sub"><span id="connectionDot" class="online-dot"></span> ROOM <strong id="gameRoomCode">------</strong></div>
+            <div class="brand-sub"><span id="connectionDot" class="online-dot"></span> ROOM <strong id="gameRoomCode">------</strong></div><div class="game-toolbar-actions"><button id="leaveGameBtn" class="ghost leave-btn" type="button">途中退出</button></div>
           </div>
           <div class="top-info-grid">
             <div class="info-chip"><span class="label">ROUND</span><strong id="roundNumber">1</strong></div>
             <div class="info-chip hot"><span class="label">勝利条件</span><strong>3ポイント先取</strong></div>
             <div class="info-chip"><span class="label">生存</span><strong id="playerCount">0/0</strong></div>
-            <div class="info-chip"><span class="label">山札</span><strong id="deckCount">276</strong></div>
+            <div class="info-chip deck-chip"><span class="label">山札残り</span><strong id="deckCount">276枚</strong></div>
             <div class="info-chip"><span class="label">捨て札</span><strong id="discardCount">0</strong></div>
             <div class="info-chip"><span class="label">カード使用</span><strong id="playCount">0/1</strong></div>
           </div>
@@ -156,6 +156,25 @@
             </aside>
           </div>
         </section>
+      </section>
+
+      <section id="resultScreen" class="screen">
+        <div class="panel result-panel">
+          <div class="result-kicker">FINAL RESULT</div>
+          <div class="result-crown">♛</div>
+          <h2 id="resultWinnerName">WINNER</h2>
+          <div id="resultWinnerPoints" class="result-winner-points">3 POINT</div>
+          <p class="result-message">3ポイント先取。これで勝者確定よ。</p>
+          <div class="result-board">
+            <div class="result-board-head"><strong>最終結果</strong><span>ポイント順</span></div>
+            <div id="resultStandings" class="result-standings"></div>
+          </div>
+          <div class="result-actions">
+            <button id="rematchBtn" class="primary large" type="button">同じメンバーで再戦</button>
+            <button id="resultExitBtn" class="secondary large" type="button">タイトルへ戻る</button>
+          </div>
+          <div id="rematchHint" class="result-hint"></div>
+        </div>
       </section>
     </main>
   </div>

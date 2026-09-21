@@ -4,6 +4,7 @@ const $ = (s) => document.querySelector(s);
 const entryScreen = $('#entryScreen');
 const lobbyScreen = $('#lobbyScreen');
 const gameScreen = $('#gameScreen');
+const resultScreen = $('#resultScreen');
 const entryError = $('#entryError');
 const lobbyPlayers = $('#lobbyPlayers');
 const startOnlineBtn = $('#startOnlineBtn');
@@ -36,6 +37,13 @@ const interruptChain = $('#interruptChain');
 const eliminationFx = $('#eliminationFx');
 const eliminationName = $('#eliminationName');
 const eliminationReason = $('#eliminationReason');
+const leaveGameBtn = $('#leaveGameBtn');
+const rematchBtn = $('#rematchBtn');
+const resultExitBtn = $('#resultExitBtn');
+const resultWinnerName = $('#resultWinnerName');
+const resultWinnerPoints = $('#resultWinnerPoints');
+const resultStandings = $('#resultStandings');
+const rematchHint = $('#rematchHint');
 
 let session = null;
 let source = null;
@@ -134,11 +142,67 @@ async function setBgmEnabled(enabled) {
   }
 }
 
+// --- 効果音（Web Audioで生成。音源ファイル不要） ---
+async function ensureSfxAudio() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+      bgmMaster = audioCtx.createGain();
+      bgmMaster.gain.value = 0.22;
+      bgmMaster.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    return audioCtx;
+  } catch (_) { return null; }
+}
+function playTone(ctx, freq, start, duration, gainValue = 0.12, type = 'sine') {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(start); osc.stop(start + duration + 0.03);
+}
+async function playSfx(kind) {
+  const ctx = await ensureSfxAudio();
+  if (!ctx) return;
+  const t = ctx.currentTime + 0.01;
+  if (kind === 'card') {
+    // 間抜けな「ぺポ」2音
+    playTone(ctx, 420, t, 0.10, 0.10, 'sine');
+    playTone(ctx, 620, t + 0.105, 0.14, 0.09, 'triangle');
+  } else if (kind === 'interrupt') {
+    // 金属的な「シャキーン」
+    playTone(ctx, 720, t, 0.16, 0.08, 'sawtooth');
+    playTone(ctx, 1180, t + 0.035, 0.24, 0.07, 'triangle');
+    playTone(ctx, 1760, t + 0.075, 0.30, 0.045, 'sine');
+  } else if (kind === 'bang') {
+    // 短い「バン」。ノイズ + 低い芯音
+    const len = Math.floor(ctx.sampleRate * 0.18);
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.035));
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 1800;
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    src.buffer = buffer; src.connect(filter); filter.connect(gain); gain.connect(ctx.destination); src.start(t);
+    playTone(ctx, 105, t, 0.16, 0.11, 'triangle');
+  }
+}
+
 const storageKey = 'coolSoulOnlineSession';
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
 function showScreen(screen) {
-  [entryScreen, lobbyScreen, gameScreen].forEach((x) => x.classList.remove('active'));
+  [entryScreen, lobbyScreen, gameScreen, resultScreen].forEach((x) => x.classList.remove('active'));
   screen.classList.add('active');
 }
 function showError(text) {
@@ -213,6 +277,16 @@ function connectEvents() {
   source.addEventListener('prompt', (e) => showPrompt(JSON.parse(e.data)));
   source.addEventListener('notice', (e) => showToast(JSON.parse(e.data).text || 'お知らせ'));
   source.addEventListener('fx', (e) => playFx(JSON.parse(e.data)));
+  source.addEventListener('roomEnded', (e) => {
+    const info = JSON.parse(e.data || '{}');
+    modal.classList.add('hidden');
+    currentPromptId = null;
+    clearSession();
+    state = null;
+    selectedUid = null;
+    showScreen(entryScreen);
+    showToast(info.message || 'ゲームが終了したためタイトルへ戻ったわ。');
+  });
   source.onopen = () => setConnection(true);
   source.onerror = () => setConnection(false);
 }
@@ -228,10 +302,30 @@ function render() {
   if (state.status === 'lobby') {
     showScreen(lobbyScreen);
     renderLobby();
+  } else if (state.gameOver) {
+    showScreen(resultScreen);
+    renderResult();
   } else {
     showScreen(gameScreen);
     renderGame();
   }
+}
+function renderResult() {
+  const winner = state.players.find((p) => p.id === state.winnerId) || [...state.players].sort((a,b) => b.points - a.points)[0];
+  resultWinnerName.textContent = winner?.name || 'WINNER';
+  resultWinnerPoints.textContent = `${winner?.points ?? 3} POINT`;
+  resultStandings.innerHTML = '';
+  const rows = state.finalStandings?.length ? state.finalStandings : [...state.players].sort((a,b) => b.points - a.points).map((p,i) => ({...p, rank:i+1}));
+  rows.forEach((r) => {
+    const d = document.createElement('div');
+    d.className = `result-row ${r.id === state.winnerId ? 'winner' : ''}`;
+    d.innerHTML = `<span class="result-rank">${r.rank}</span><strong>${esc(r.name)}</strong><span>${r.points} pt</span>`;
+    resultStandings.appendChild(d);
+  });
+  const host = state.me === state.hostId;
+  rematchBtn.style.display = host ? 'inline-flex' : 'none';
+  rematchBtn.disabled = !state.canRematch;
+  rematchHint.textContent = host ? (state.canRematch ? '全員接続中。同じメンバー・ポイント0から再戦できるわ。' : '全員の接続が揃うと再戦できるわ。') : 'ホストが再戦を選ぶと、そのまま同じメンバーで次の試合が始まるわ。';
 }
 function renderLobby() {
   roomCodeText.textContent = state.roomCode;
@@ -251,7 +345,7 @@ function renderLobby() {
 function renderGame() {
   gameRoomCode.textContent = state.roomCode;
   $('#roundNumber').textContent = state.round;
-  $('#deckCount').textContent = state.deckCount;
+  $('#deckCount').textContent = `${state.deckCount}枚`;
   $('#discardCount').textContent = state.discardCount;
   $('#playerCount').textContent = `${state.players.filter((p) => p.alive).length}/${state.players.length}`;
   const me = state.players.find((p) => p.id === state.me);
@@ -365,7 +459,6 @@ function showPrompt(p) {
   });
   modal.classList.remove('hidden');
   if (p.kind === 'trap') showToast('TRAP UIがあなたの画面に侵入したわ。');
-  else playFx({ type: 'interruptPrompt', title: p.title });
 }
 async function respondPrompt(requestId, value) {
   if (!session || currentPromptId !== requestId) return;
@@ -379,7 +472,10 @@ async function respondPrompt(requestId, value) {
 
 function playFx(fx) {
   clearTimeout(fxTimer);
-  if (fx.type === 'interrupt' || fx.type === 'interruptPrompt') {
+  if (fx.type === 'cardPlay') {
+    playSfx('card');
+  } else if (fx.type === 'interrupt' || fx.type === 'interruptPrompt') {
+    playSfx('interrupt');
     interruptChain.innerHTML = '';
     const entries = fx.entries || [{ name: fx.title || '割り込み確認', owner: 'あなた' }];
     entries.forEach((e, i) => {
@@ -389,6 +485,7 @@ function playFx(fx) {
     interruptFx.classList.remove('hidden');
     fxTimer = setTimeout(() => interruptFx.classList.add('hidden'), 1200);
   } else if (fx.type === 'elimination') {
+    playSfx('bang');
     eliminationName.textContent = fx.name;
     eliminationReason.textContent = `理由：${fx.reason}`;
     eliminationFx.classList.remove('hidden');
@@ -416,6 +513,25 @@ async function action(action, payload = {}) {
   catch (e) { showToast(e.message); }
 }
 
+async function leaveCurrentRoom(fromResult = false) {
+  if (!session) { clearSession(); state = null; showScreen(entryScreen); return; }
+  if (!fromResult) {
+    const ok = window.confirm('途中退出すると、この試合は全員その場で中断してタイトルへ戻るわ。本当に退出する？');
+    if (!ok) return;
+  }
+  try { await post('/api/leave', session); } catch (_) {}
+  clearSession();
+  state = null;
+  selectedUid = null;
+  modal.classList.add('hidden');
+  showScreen(entryScreen);
+}
+async function rematch() {
+  if (!session) return;
+  try { await post('/api/rematch', session); }
+  catch (e) { showToast(e.message); }
+}
+
 $('#createRoomBtn').onclick = createRoom;
 $('#joinRoomBtn').onclick = joinRoom;
 
@@ -439,6 +555,9 @@ joinCodeInput.addEventListener('paste', () => setTimeout(normalizeJoinCode, 0));
 $('#copyCodeBtn').onclick = async () => { if (state?.roomCode) { await navigator.clipboard?.writeText(state.roomCode).catch(() => {}); showToast(`参加コード ${state.roomCode} をコピーしたわ。`); } };
 startOnlineBtn.onclick = async () => { try { await post('/api/start', session); } catch (e) { showToast(e.message); } };
 testOnlineBtn.onclick = async () => { try { await post('/api/start', { ...session, testMode: true }); } catch (e) { showToast(e.message); } };
+leaveGameBtn.onclick = () => leaveCurrentRoom(false);
+resultExitBtn.onclick = () => leaveCurrentRoom(true);
+rematchBtn.onclick = rematch;
 
 bgmToggleBtn.onclick = () => setBgmEnabled(!bgmEnabled);
 // ブラウザの自動再生制限対策：最初のユーザー操作後に静かなBGMを開始。
