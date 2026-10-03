@@ -14,7 +14,7 @@
         <p class="subtitle">理不尽に負けろ。今度は本当に別々の端末で。</p>
       </div>
       <div class="hero-badges">
-        <span class="pill beta">ONLINE BETA 1.0.6</span>
+        <span class="pill beta">ONLINE BETA 1.0.7</span>
         <span class="pill online-pill"><span class="online-dot"></span> サーバー同期</span>
         <button id="bgmToggleBtn" class="pill bgm-pill" type="button" aria-pressed="true">♪ BGM ON</button>
       </div>
@@ -22,7 +22,38 @@
 
     <main>
       <section id="entryScreen" class="screen active">
-        <div class="online-entry-grid">
+        <div class="lux-title-stage" aria-label="The クールソウルゲーム タイトル">
+          <div class="title-light title-light-a"></div>
+          <div class="title-light title-light-b"></div>
+          <div class="title-cat title-cat-left" aria-hidden="true">
+            <div class="cat-face">🐈‍⬛</div>
+            <div class="cat-glasses">⌐■-■</div>
+            <div class="cat-bubble">今夜もクールに<br>いこうぜ…</div>
+          </div>
+          <div class="title-cat title-cat-right" aria-hidden="true">
+            <div class="cat-face">🐈‍⬛</div>
+            <div class="cat-glasses">⌐■-■</div>
+            <div class="cat-bubble">心理戦？<br>そう、遊びだよ。</div>
+          </div>
+          <div class="title-crown" aria-hidden="true">♛</div>
+          <div class="title-the">The</div>
+          <h1 class="lux-game-title">クールソウルゲーム</h1>
+          <div class="title-beta-plaque">◆ ONLINE BETA 1.0.7 ◆</div>
+          <p class="title-tagline">理不尽に負けろ。クールに笑え。</p>
+          <div class="title-menu-row">
+            <button id="titleCreateBtn" class="lux-menu-btn" type="button"><span>♛</span> 部屋を作る</button>
+            <button id="titleJoinBtn" class="lux-menu-btn" type="button"><span>♣</span> ルームに参加</button>
+            <button id="titleTestBtn" class="lux-menu-btn" type="button"><span>♠</span> 2人テスト</button>
+            <button id="howToPlayBtn" class="lux-menu-btn" type="button"><span>📖</span> 遊び方</button>
+          </div>
+          <button id="titleBgmBtn" class="title-bgm-btn" type="button" aria-pressed="true">♪ BGM ON / OFF</button>
+          <div class="title-card-fan title-card-left" aria-hidden="true">♠</div>
+          <div class="title-card-fan title-card-right" aria-hidden="true">♥</div>
+          <div class="title-floor-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="entry-section-label">ROOM ENTRY</div>
+        <div class="online-entry-grid luxury-entry-grid">
           <div class="panel online-entry-card">
             <div class="entry-kicker">HOST</div>
             <h2>ルームを作る</h2>
@@ -192,6 +223,20 @@
       <div class="elimination-title">脱落</div>
       <div id="eliminationName" class="elimination-name"></div>
       <div id="eliminationReason" class="elimination-reason"></div>
+    </div>
+    <div id="roundWinFx" class="round-win-fx hidden">
+      <div class="round-win-rays" aria-hidden="true"></div>
+      <div class="round-win-confetti" aria-hidden="true">◆ ✦ ★ ◆ ✦ ★ ◆ ✦ ★</div>
+      <div class="round-win-cat round-win-cat-left" aria-hidden="true">🐈‍⬛<span>⌐■-■</span></div>
+      <div class="round-win-cat round-win-cat-right" aria-hidden="true">🐈‍⬛<span>⌐■-■</span></div>
+      <div class="round-win-crown" aria-hidden="true">♛</div>
+      <div class="round-win-title">勝利！</div>
+      <div class="round-win-plaque">WINNER</div>
+      <div id="roundWinName" class="round-win-name">PLAYER</div>
+      <div id="roundWinPoint" class="round-win-point">1 POINT獲得！</div>
+      <div id="roundWinReason" class="round-win-reason"></div>
+      <div class="round-win-cheer left">やったぜ！<br>クールに勝ったにゃ!!</div>
+      <div class="round-win-cheer right">ナイス<br>プレイにゃ！</div>
     </div>
   </div>
 

@@ -10,6 +10,7 @@ const lobbyPlayers = $('#lobbyPlayers');
 const startOnlineBtn = $('#startOnlineBtn');
 const testOnlineBtn = $('#testOnlineBtn');
 const bgmToggleBtn = $('#bgmToggleBtn');
+const titleBgmBtn = $('#titleBgmBtn');
 const joinCodeInput = $('#joinCode');
 const roomCodeText = $('#roomCodeText');
 const gameRoomCode = $('#gameRoomCode');
@@ -37,6 +38,10 @@ const interruptChain = $('#interruptChain');
 const eliminationFx = $('#eliminationFx');
 const eliminationName = $('#eliminationName');
 const eliminationReason = $('#eliminationReason');
+const roundWinFx = $('#roundWinFx');
+const roundWinName = $('#roundWinName');
+const roundWinPoint = $('#roundWinPoint');
+const roundWinReason = $('#roundWinReason');
 const leaveGameBtn = $('#leaveGameBtn');
 const rematchBtn = $('#rematchBtn');
 const resultExitBtn = $('#resultExitBtn');
@@ -135,6 +140,11 @@ async function setBgmEnabled(enabled) {
   bgmToggleBtn.textContent = bgmEnabled ? '♪ BGM ON' : '♪ BGM OFF';
   bgmToggleBtn.setAttribute('aria-pressed', String(bgmEnabled));
   bgmToggleBtn.classList.toggle('off', !bgmEnabled);
+  if (titleBgmBtn) {
+    titleBgmBtn.textContent = bgmEnabled ? '♪ BGM ON / OFF' : '♪ BGM OFF / ON';
+    titleBgmBtn.setAttribute('aria-pressed', String(bgmEnabled));
+    titleBgmBtn.classList.toggle('off', !bgmEnabled);
+  }
   if (bgmEnabled) {
     await ensureBgmStarted();
   } else {
@@ -182,6 +192,10 @@ async function playSfx(kind) {
     playTone(ctx, 720, t, 0.16, 0.08, 'sawtooth');
     playTone(ctx, 1180, t + 0.035, 0.24, 0.07, 'triangle');
     playTone(ctx, 1760, t + 0.075, 0.30, 0.045, 'sine');
+  } else if (kind === 'victory') {
+    // コミカルな短い勝利ファンファーレ
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(ctx, f, t + i * 0.085, 0.34, 0.075, i === 3 ? 'triangle' : 'sine'));
+    playTone(ctx, 261.63, t, 0.52, 0.05, 'triangle');
   } else if (kind === 'bang') {
     // 短い「バン」。ノイズ + 低い芯音
     const len = Math.floor(ctx.sampleRate * 0.18);
@@ -205,6 +219,8 @@ const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<
 function showScreen(screen) {
   [entryScreen, lobbyScreen, gameScreen, resultScreen].forEach((x) => x.classList.remove('active'));
   screen.classList.add('active');
+  document.body.dataset.screen = screen?.id || '';
+  window.scrollTo({ top: 0, behavior: 'auto' });
 }
 function showError(text) {
   entryError.textContent = text;
@@ -615,7 +631,16 @@ function playFx(fx) {
     document.body.classList.add('elimination-shake');
     fxTimer = setTimeout(() => { eliminationFx.classList.add('hidden'); document.body.classList.remove('elimination-shake'); }, 1300);
   } else if (fx.type === 'roundWin') {
-    showBigMessage('ROUND WIN', `${fx.name} +1 POINT`);
+    playSfx('victory');
+    roundWinName.textContent = fx.name || 'PLAYER';
+    roundWinPoint.textContent = `${fx.points ?? 1} POINT / +1 POINT獲得！`;
+    roundWinReason.textContent = fx.reason ? `勝因：${fx.reason}` : 'このラウンドの勝者';
+    roundWinFx.classList.remove('hidden');
+    document.body.classList.add('round-win-active');
+    fxTimer = setTimeout(() => {
+      roundWinFx.classList.add('hidden');
+      document.body.classList.remove('round-win-active');
+    }, 3350);
   } else if (fx.type === 'gameWin') {
     showBigMessage('THE COOL SOUL WINNER', `${fx.name} / 3 POINT`, 4200);
   } else if (fx.type === 'coin') {
@@ -655,6 +680,38 @@ async function rematch() {
   catch (e) { showToast(e.message); }
 }
 
+function focusEntry(target) {
+  const el = $(target);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => el.focus(), 350);
+}
+function showHowToPlay() {
+  cleanupTrapPrompt();
+  currentPromptId = null;
+  modal.className = 'modal luxury-help-modal';
+  modalTitle.textContent = '遊び方';
+  modalBody.innerHTML = `
+    <div class="lux-help">
+      <p><strong>3〜8人</strong>で遊ぶ、理不尽カードゲーム。開発用なら2人テストもできるわ。</p>
+      <p>各ラウンドは<strong>手札5枚</strong>から開始。通常は自分のターンにカードを1枚使い、割込カードは条件を満たした時に別枠で使える。</p>
+      <p>最後まで生き残るか、特殊な勝利効果を決めれば<strong>1ポイント</strong>。先に<strong>3ポイント</strong>取ったプレイヤーがゲーム勝者。</p>
+      <p class="lux-help-warn">TRAPカードは画面そのものが罠。怪しいボタンを反射で押すな。……押したくなるけど。</p>
+    </div>`;
+  modalActions.innerHTML = '';
+  const close = document.createElement('button');
+  close.className = 'lux-help-close';
+  close.textContent = 'わかった';
+  close.onclick = () => { modal.classList.add('hidden'); modal.className = 'modal hidden'; };
+  modalActions.appendChild(close);
+  modal.classList.remove('hidden');
+}
+
+$('#titleCreateBtn')?.addEventListener('click', () => focusEntry('#createName'));
+$('#titleJoinBtn')?.addEventListener('click', () => focusEntry('#joinName'));
+$('#titleTestBtn')?.addEventListener('click', () => { focusEntry('#createName'); showToast('2人テストは部屋を作って2人揃ったあと、ロビーから開始できるわ。'); });
+$('#howToPlayBtn')?.addEventListener('click', showHowToPlay);
+
 $('#createRoomBtn').onclick = createRoom;
 $('#joinRoomBtn').onclick = joinRoom;
 
@@ -683,6 +740,7 @@ resultExitBtn.onclick = () => leaveCurrentRoom(true);
 rematchBtn.onclick = rematch;
 
 bgmToggleBtn.onclick = () => setBgmEnabled(!bgmEnabled);
+if (titleBgmBtn) titleBgmBtn.onclick = () => setBgmEnabled(!bgmEnabled);
 // ブラウザの自動再生制限対策：最初のユーザー操作後に静かなBGMを開始。
 document.addEventListener('pointerdown', () => { if (bgmEnabled) ensureBgmStarted(); }, { once: true, capture: true });
 drawBtn.onclick = () => action('draw');
@@ -692,4 +750,5 @@ chatSendBtn.onclick = () => { const text = chatInput.value.trim(); if (!text) re
 chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chatSendBtn.click(); } });
 $('#togglePrivacyBtn').onclick = () => { privacyMode = !privacyMode; $('#togglePrivacyBtn').textContent = privacyMode ? '手札を表示' : '手札を隠す'; if (state?.status === 'playing') renderHand(); };
 
+showScreen(entryScreen);
 reconnectSaved();
