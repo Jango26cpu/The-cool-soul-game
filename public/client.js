@@ -349,7 +349,7 @@ function renderGame() {
   $('#discardCount').textContent = state.discardCount;
   $('#playerCount').textContent = `${state.players.filter((p) => p.alive).length}/${state.players.length}`;
   const me = state.players.find((p) => p.id === state.me);
-  $('#playCount').textContent = me ? `${Math.min(me.playedThisTurn, 1)}/1` : '0/1';
+  $('#playCount').textContent = me ? `${me.playedThisTurn}/${me.playLimit || 1}` : '0/1';
   $('#drawState').textContent = state.currentPlayerId === state.me ? (state.drawnThisTurn ? '実行済み' : '未実行') : '待機';
   $('#syncState').textContent = state.busy ? '効果処理中' : '同期済み';
   $('#turnBanner').textContent = state.currentPlayerId === state.me ? 'あなたのターン' : `${state.currentPlayerName} のターン`;
@@ -424,7 +424,7 @@ function renderHand() {
     d.onclick = () => { selectedUid = c.uid; renderHand(); renderSelected(); };
     handEl.appendChild(d);
   });
-  $('#handMeta').textContent = `(${state.myHand.length}枚) ｜ 初期手札 5枚 ｜ 通常系は1ターン1枚 ｜ 割込は条件成立時に別枠`;
+  $('#handMeta').textContent = `(${state.myHand.length}枚) ｜ 初期手札 5枚 ｜ 通常系は原則1ターン1枚（効果で増加あり） ｜ 割込は条件成立時に別枠`; 
 }
 function renderSelected() {
   const c = state.myHand.find((x) => x.uid === selectedUid);

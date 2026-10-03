@@ -44,102 +44,102 @@ const shuffle = (a) => {
   return a;
 };
 const baseCards = [
-  {id:1,name:'突然ですが、あなたの負けです',type:'通常',text:'プレイヤー1人を選ぶ。そのプレイヤーを脱落させる。',copies:3,effect:'eliminateTarget',attack:true},
-  {id:2,name:'いや、お前が負けろよ',type:'割込',text:'他プレイヤーの効果で自分が脱落する時、その脱落を効果の使用者へ返す。',copies:3,interrupt:'reflectElimination'},
-  {id:3,name:'なんで俺だけ！？',type:'通常',text:'手札が最も多い生存者全員を脱落させる。同数なら全員。',copies:3,effect:'mostHandOut',attack:true},
-  {id:4,name:'全員そこに正座',type:'通常',text:'全員の手札を確認し、カード名に「勝」が入るカードを持つプレイヤー全員を脱落させる。',copies:3,effect:'revealWinWordOut',attack:true},
-  {id:5,name:'多数決を始めます',type:'通常',text:'生存者全員が脱落させたい相手へ投票する。最多票が脱落。同票なら最多票全員。',copies:3,effect:'vote',attack:true},
-  {id:6,name:'民主主義って怖いね',type:'割込',text:'《多数決を始めます》の結果確定後に使用。最多票ではなく最少票のプレイヤー全員を脱落対象にする。',copies:3,interrupt:'reverseVote'},
-  {id:7,name:'ちょっと待った！',type:'割込',text:'他プレイヤーが通常・継続・特殊カードを使用した直後、そのカードを無効にする。',copies:3,interrupt:'cancelCard'},
-  {id:8,name:'ちょっと待たない！',type:'割込',text:'《ちょっと待った！》に対して使用。それを無効にし、元のカードを予定通り発動する。',copies:3,interrupt:'uncancelCard'},
-  {id:9,name:'空気読めよ',type:'通常',text:'現在ポイントが最も高い生存者全員を脱落させる。同率なら全員。',copies:3,effect:'topPointOut',attack:true},
-  {id:10,name:'最下位救済キャンペーン',type:'通常',text:'最少ポイントの生存者は手札が5枚になるまで引く。引いたカードがすべて攻撃カードなら、そのプレイヤーは脱落する。',copies:3,effect:'bottomDraw'},
-  {id:11,name:'今から本気出す',type:'通常',text:'残りの手札をすべて捨てて3枚引く。その3枚すべてのカード名に「！」が入っていれば即座にラウンド勝利。',copies:3,effect:'allDiscardDraw3ExclaimWin'},
-  {id:12,name:'知らんけど',type:'通常',text:'直前に解決した通常・継続・特殊カードの効果をもう一度発動する。対象が必要ならランダム。',copies:3,effect:'repeatLastRandom'},
-  {id:13,name:'巻き添え',type:'割込',text:'自分が脱落した直後に使用。生存者1人を選び、そのプレイヤーも脱落させる。',copies:3,interrupt:'revenge'},
-  {id:14,name:'お前とは仲良くなれそうだ',type:'通常',text:'他プレイヤー1人を選び、自分と運命共同体になる。片方が脱落したら、もう片方も脱落する。',copies:3,effect:'soulLink'},
-  {id:15,name:'友情って素晴らしい！',type:'通常',text:'運命共同体を1組選ぶ。その2人以外の生存者からランダムで1人を脱落させる。',copies:3,effect:'friendshipRandomOut',attack:true},
-  {id:16,name:'勝ったと思った？',type:'割込',text:'カード効果によるラウンド勝利が発生する直前に使用。その勝利を無効にし、勝者予定者の手札をすべて捨てる。',copies:3,interrupt:'cancelSpecialWin'},
-  {id:17,name:'いや勝ってるから',type:'割込',text:'自分のカード効果による勝利に《勝ったと思った？》を使われた時に使用。それを無効にし、そのまま勝利する。',copies:3,interrupt:'restoreSpecialWin'},
-  {id:18,name:'神は言っている――まだ死ぬ時ではないと',type:'割込',text:'自分が脱落する直前に使用。その脱落を無効にする。',copies:3,interrupt:'preventElimination'},
-  {id:19,name:'神「やっぱ死んで」',type:'割込',text:'《神は言っている――まだ死ぬ時ではないと》使用時に使用。その無効化を無効にする。',copies:3,interrupt:'cancelPrevention'},
-  {id:20,name:'THE クールソウル',type:'特殊',text:'このカードが自分の最後の手札なら使用できる。使用すると即座にラウンド勝利する。',copies:3,effect:'coolSoulWin'},
+  {id:1,name:'突然ですが、あなたの負けです',type:'通常',text:'プレイヤー1人を選ぶ。そのプレイヤーを脱落させる。',copies:1,effect:'eliminateTarget',attack:true},
+  {id:2,name:'いや、お前が負けろよ',type:'割込',text:'他プレイヤーの効果で自分が脱落する時、その脱落を効果の使用者へ返す。',copies:1,interrupt:'reflectElimination'},
+  {id:3,name:'なんで俺だけ！？',type:'通常',text:'手札が最も多い生存者全員を脱落させる。同数なら全員。',copies:1,effect:'mostHandOut',attack:true},
+  {id:4,name:'全員そこに正座',type:'通常',text:'全員の手札を確認し、カード名に「勝」が入るカードを持つプレイヤー全員を脱落させる。',copies:1,effect:'revealWinWordOut',attack:true},
+  {id:5,name:'多数決を始めます',type:'通常',text:'生存者全員が脱落させたい相手へ投票する。最多票が脱落。同票なら最多票全員。',copies:1,effect:'vote',attack:true},
+  {id:6,name:'民主主義って怖いね',type:'割込',text:'《多数決を始めます》の結果確定後に使用。最多票ではなく最少票のプレイヤー全員を脱落対象にする。',copies:1,interrupt:'reverseVote'},
+  {id:7,name:'ちょっと待った！',type:'割込',text:'他プレイヤーが通常・継続・特殊カードを使用した直後、そのカードを無効にする。',copies:1,interrupt:'cancelCard'},
+  {id:8,name:'ちょっと待たない！',type:'割込',text:'《ちょっと待った！》に対して使用。それを無効にし、元のカードを予定通り発動する。',copies:1,interrupt:'uncancelCard'},
+  {id:9,name:'空気読めよ',type:'通常',text:'現在ポイントが最も高い生存者全員を脱落させる。同率なら全員。',copies:1,effect:'topPointOut',attack:true},
+  {id:10,name:'最下位救済キャンペーン',type:'通常',text:'最少ポイントの生存者は手札が5枚になるまで引く。引いたカードがすべて攻撃カードなら、そのプレイヤーは脱落する。',copies:1,effect:'bottomDraw'},
+  {id:11,name:'今から本気出す',type:'通常',text:'残りの手札をすべて捨てて3枚引く。その3枚すべてのカード名に「！」が入っていれば即座にラウンド勝利。',copies:1,effect:'allDiscardDraw3ExclaimWin'},
+  {id:12,name:'知らんけど',type:'通常',text:'直前に解決した通常・継続・特殊カードの効果をもう一度発動する。対象が必要ならランダム。',copies:1,effect:'repeatLastRandom'},
+  {id:13,name:'巻き添え',type:'割込',text:'自分が脱落した直後に使用。生存者1人を選び、そのプレイヤーも脱落させる。',copies:1,interrupt:'revenge'},
+  {id:14,name:'お前とは仲良くなれそうだ',type:'通常',text:'他プレイヤー1人を選び、自分と運命共同体になる。片方が脱落したら、もう片方も脱落する。',copies:1,effect:'soulLink'},
+  {id:15,name:'友情って素晴らしい！',type:'通常',text:'運命共同体を1組選ぶ。その2人以外の生存者からランダムで1人を脱落させる。',copies:1,effect:'friendshipRandomOut',attack:true},
+  {id:16,name:'勝ったと思った？',type:'割込',text:'カード効果によるラウンド勝利が発生する直前に使用。その勝利を無効にし、勝者予定者の手札をすべて捨てる。',copies:1,interrupt:'cancelSpecialWin'},
+  {id:17,name:'いや勝ってるから',type:'割込',text:'自分のカード効果による勝利に《勝ったと思った？》を使われた時に使用。それを無効にし、そのまま勝利する。',copies:1,interrupt:'restoreSpecialWin'},
+  {id:18,name:'神は言っている――まだ死ぬ時ではないと',type:'割込',text:'自分が脱落する直前に使用。その脱落を無効にする。',copies:1,interrupt:'preventElimination'},
+  {id:19,name:'神「やっぱ死んで」',type:'割込',text:'《神は言っている――まだ死ぬ時ではないと》使用時に使用。その無効化を無効にする。',copies:1,interrupt:'cancelPrevention'},
+  {id:20,name:'THE クールソウル',type:'特殊',text:'このカードが自分の最後の手札なら使用できる。使用すると即座にラウンド勝利する。',copies:1,effect:'coolSoulWin'},
 
-  {id:21,name:'引いたね？',type:'強制',text:'引いた瞬間に公開する。何もしなければ、そのプレイヤーは脱落する。',copies:3,effect:'drawDeath',auto:true,attack:true},
-  {id:22,name:'セーフ！',type:'割込',text:'自分が《引いたね？》を引いた時に使用。その脱落を無効にする。',copies:3,interrupt:'safeDrawDeath'},
-  {id:23,name:'セーフじゃないよ',type:'割込',text:'誰かが《セーフ！》を使った時に使用。《セーフ！》を無効にする。',copies:3,interrupt:'cancelSafeDrawDeath'},
-  {id:24,name:'何も起きません',type:'通常',text:'本当に何も起きない。たぶん。',copies:3,effect:'nothing'},
-  {id:25,name:'何も起きないと思った？',type:'割込',text:'《何も起きません》の直後に使用。使用者以外の生存者は手札を1枚捨てる。捨てられないプレイヤーは脱落する。',copies:3,interrupt:'afterNothing'},
-  {id:26,name:'事故です',type:'通常',text:'ランダムな生存者1人が脱落する。自分も対象。',copies:3,effect:'randomOut',attack:true},
-  {id:27,name:'大事故です',type:'通常',text:'ランダムな生存者2人が脱落する。',copies:3,effect:'doubleRandomOut',attack:true},
-  {id:28,name:'責任者を呼べ！',type:'割込',text:'他プレイヤーのカード効果が解決した直後に使用。そのカードの使用者を脱落させる。',copies:3,interrupt:'callManager'},
-  {id:29,name:'私が責任者です',type:'割込',text:'自分が《責任者を呼べ！》の対象になった時に使用。代わりに《責任者を呼べ！》の使用者を脱落させる。',copies:3,interrupt:'reverseManager'},
-  {id:30,name:'そんなルールあった？',type:'割込',text:'他プレイヤーがカードを使用した直後に使用。そのカードを無効にし、同名カードをこのラウンド中使用禁止にする。',copies:3,interrupt:'banCancel'},
-  {id:31,name:'今作った',type:'割込',text:'《そんなルールあった？》に対して使用。それを無効にし、元のカードを予定通り発動する。',copies:3,interrupt:'unbanCancel'},
-  {id:32,name:'手札見せて♡',type:'通常',text:'他プレイヤー1人の手札を見る。攻撃カードを持っていたら、その中から1枚を奪う。',copies:3,effect:'peekAndSteal'},
-  {id:33,name:'見たな？',type:'割込',text:'自分の手札を見られた直後に使用。覗いたプレイヤーの手札を全員に公開する。',copies:3,interrupt:'counterPeek'},
-  {id:34,name:'目が合ったね',type:'TRAP',text:'プレイヤー1人を指名して視線確認UIを表示する。危険な確認を押したら脱落。',copies:3,effect:'trapEye'},
-  {id:35,name:'今しゃべった？',type:'割込',text:'誰かがゲーム内チャットで発言した直後に使用。その人は手札を1枚捨てる。捨てられなければ脱落。',copies:3,interrupt:'afterChat'},
-  {id:36,name:'静粛に！',type:'継続',text:'次の自分のターン開始まで、チャットで発言したプレイヤーを脱落させる。',copies:3,effect:'silence'},
-  {id:37,name:'いやゲームできないだろ',type:'割込',text:'《静粛に！》の発動時、または効果中に使用。《静粛に！》を解除する。',copies:3,interrupt:'breakSilence'},
-  {id:38,name:'席替えしまーす',type:'通常',text:'全員の手札を左隣へ渡す。',copies:3,effect:'rotateHands'},
-  {id:39,name:'逆だったわ',type:'割込',text:'《席替えしまーす》に対して使用。手札を左ではなく右隣へ渡す。',copies:3,interrupt:'reverseSeat'},
-  {id:40,name:'返して',type:'割込',text:'自分の手札が他人へ渡される直前に使用。移動後、その中から1枚を取り戻し、受け取った相手からさらにランダム1枚を受け取る。',copies:3,interrupt:'takeBack'},
-  {id:41,name:'それ俺の',type:'割込',text:'他プレイヤーが通常ドローした直後に使用。その引いたカードを奪う。',copies:3,interrupt:'stealDraw'},
-  {id:42,name:'欲張りさんね',type:'割込',text:'誰かが他人のカードを奪った直後に使用。そのプレイヤーから最大2枚を奪う。',copies:3,interrupt:'punishSteal'},
-  {id:43,name:'山札なんて信用できない',type:'通常',text:'山札の上から3枚を見て、好きな順番に並べ直す。',copies:3,effect:'reorderTop3'},
-  {id:44,name:'見せろ',type:'割込',text:'《山札なんて信用できない》使用時に使用。見た3枚を全員に公開させる。',copies:3,interrupt:'revealTop3'},
-  {id:45,name:'未来は変えられる',type:'通常',text:'山札の一番上を捨てる。',copies:3,effect:'discardTop'},
-  {id:46,name:'未来は変えられない',type:'割込',text:'《未来は変えられる》に対して使用。その捨て札化を無効にし、使用者に山札の一番上を引かせる。',copies:3,interrupt:'forceFutureDraw'},
-  {id:47,name:'今日の主役',type:'継続',text:'次の自分のターン開始まで、単体カードの対象を選ぶ時、可能なら自分を選ばなければならない。',copies:3,effect:'mainCharacter'},
-  {id:48,name:'空気になりたい',type:'継続',text:'次の自分のターンまで、単体カードの対象にならない。',copies:3,effect:'untargetable'},
-  {id:49,name:'お前いたの？',type:'通常',text:'《空気になりたい》状態のプレイヤー1人を選び、その効果を無視して脱落させる。',copies:3,effect:'findInvisible',attack:true},
-  {id:50,name:'ちょっとトイレ',type:'特殊',text:'次の自分のターン開始までゲーム外へ退避する。退避中はカードの対象にならない。',copies:3,effect:'toilet'},
-  {id:51,name:'戻ってこなくていいよ',type:'割込',text:'《ちょっとトイレ》からプレイヤーが戻る瞬間に使用。そのプレイヤーを脱落させる。',copies:3,interrupt:'denyReturn'},
-  {id:52,name:'遺言',type:'割込',text:'自分が脱落した直後に使用。残り手札をすべて生存者1人へ渡す。',copies:3,interrupt:'lastWill'},
-  {id:53,name:'呪いの遺産',type:'強制',text:'他プレイヤーからこのカードを受け取った瞬間、受け取ったプレイヤーは脱落する。',copies:3,effect:'cursedInheritance',autoTransfer:true,attack:true},
-  {id:54,name:'プレゼント！',type:'通常',text:'自分の残り手札から1枚選び、他プレイヤー1人へ裏向きで渡す。相手は受け取らなければならない。',copies:3,effect:'gift'},
-  {id:55,name:'受取拒否',type:'割込',text:'他プレイヤーからカードを渡される直前に使用。そのカードを送り返す。',copies:3,interrupt:'rejectGift'},
-  {id:56,name:'返品不可です',type:'割込',text:'《受取拒否》に対して使用。それを無効にし、カードを予定通り受け取らせる。',copies:3,interrupt:'noReturns'},
-  {id:57,name:'全員仲良く死のう？',type:'通常',text:'生存者全員を脱落させる。',copies:3,effect:'allOut',attack:true},
-  {id:58,name:'それ勝者いなくない？',type:'割込',text:'全員脱落効果が発生する直前に使用。自分だけその効果を受けずに生き残る。',copies:3,interrupt:'surviveAll'},
-  {id:59,name:'最後に笑うのは俺だ',type:'通常',text:'生存者が自分を含めて2人だけなら使用可能。コイントスし、負けた方が脱落する。',copies:3,effect:'finalCoin',attack:true},
-  {id:60,name:'コインなんてねぇよ',type:'割込',text:'コイントスを行うカードが使われた時に使用。そのカードの使用者を脱落させ、コイントスを中止する。',copies:3,interrupt:'noCoin'},
-  {id:69,name:'今日から逆回りです',type:'継続',text:'ターン進行方向を反転する。以後、再び反転されるまでその向きで進む。',copies:3,effect:'reverse'},
-  {id:70,name:'やっぱ元に戻します',type:'継続',text:'現在のターン進行方向をもう一度反転する。結果として元に戻ることもある。',copies:3,effect:'reverse'},
-  {id:71,name:'手札なんて2枚で十分',type:'継続',text:'手札上限を2枚にする。超過分はランダムで捨てる。',copies:3,effect:'limit2'},
-  {id:72,name:'いっぱい持ってていいよ',type:'継続',text:'手札上限を撤廃する。',copies:3,effect:'noLimit'},
-  {id:73,name:'カード引くの禁止！',type:'継続',text:'次の自分のターン開始まで、誰もカードを引けない。',copies:3,effect:'noDraw'},
-  {id:74,name:'いや引けよ',type:'割込',text:'《カード引くの禁止！》の発動時、またはドローが禁止されている時に使用。禁止を解除し、生存中の全員が1枚引く。',copies:3,interrupt:'breakNoDraw'},
-  {id:75,name:'1ターンに1枚とは言ってない',type:'通常',text:'残りの手札から1枚を捨て、その後2枚引く。カード使用回数は増えない。ゲームの「1ターン1枚」ルール自体は破らない。',copies:3,effect:'cheatDraw'},
-  {id:76,name:'言ってるよ',type:'割込',text:'《1ターンに1枚とは言ってない》に対して使用。その効果を無効にし、使用者は残り手札から1枚捨てる。',copies:3,interrupt:'callOutCheat'},
-  {id:77,name:'平和条約',type:'継続',text:'次の自分のターン開始まで、脱落を直接起こすカードを使用できない。',copies:3,effect:'peace'},
-  {id:78,name:'条約破棄',type:'通常',text:'場の《平和条約》をすべて解除し、その後プレイヤー1人を選んで脱落させる。',copies:3,effect:'breakPeace',attack:true},
-  {id:79,name:'革命だ！',type:'通常',text:'全プレイヤーのポイントを最高点と最低点の間で反転させる。高得点ほど低得点に、低得点ほど高得点になる。',copies:3,effect:'revolution'},
-  {id:80,name:'革命失敗',type:'割込',text:'《革命だ！》に対して使用。革命を無効にし、革命を起こそうとしたプレイヤーは残り手札をすべて捨てる。',copies:3,interrupt:'stopRevolution'},
-  {id:81,name:'数字は禁止です',type:'継続',text:'次の自分のターン開始まで、チャットに数字を含めたプレイヤーは手札を1枚捨てる。',copies:3,effect:'banNumbers'},
-  {id:82,name:'カタカナ禁止です',type:'継続',text:'次の自分のターン開始まで、チャットにカタカナを含めたプレイヤーは1枚引く。',copies:3,effect:'banKatakana'},
-  {id:83,name:'名前で呼んで',type:'継続',text:'次の自分のターン開始まで、チャットで「お前・君・あなた・あんた・こいつ・そいつ・あいつ」を使うなら、誰かのプレイヤー名も含めなければならない。違反したら手札を1枚捨てる。',copies:3,effect:'nameCalling'},
-  {id:84,name:'敬語でお願いします',type:'継続',text:'次の自分のターン開始まで、チャットは「です・ます」などの丁寧語で終えなければならない。違反したら1枚引く。',copies:3,effect:'politeSpeech'},
-  {id:85,name:'黙ってゲームしろ',type:'継続',text:'ラウンド終了か解除まで、チャットで発言するたびにそのプレイヤーは1枚引く。',copies:3,effect:'chatDraw'},
-  {id:86,name:'喋らないとゲームできないだろ！',type:'割込',text:'《黙ってゲームしろ》の発動時、またはその効果中に使用。《黙ってゲームしろ》をすべて解除する。',copies:3,interrupt:'breakChatDraw'},
-  {id:87,name:'時計回りってどっち？',type:'通常',text:'生存中の全員が「←」か「→」を選ぶ。少数派は1枚引く。同数なら全員2枚引く。全員同じなら何も起きない。',copies:3,effect:'leftRightVote'},
-  {id:88,name:'席順変更！',type:'通常',text:'全員の手札を集めてシャッフルし、できるだけ均等に再配布する。',copies:3,effect:'redistribute'},
-  {id:89,name:'もう誰のカードかわかんねぇよ',type:'通常',text:'捨て札をすべて山札へ戻し、山札をシャッフルする。',copies:3,effect:'recycleAllDiscard'},
-  {id:90,name:'ゴミ箱漁り',type:'通常',text:'このカード自身を除く捨て札から好きなカード1枚を選び、手札に戻す。',copies:3,effect:'recycleChoice'},
-  {id:91,name:'それ捨てたやつだから',type:'割込',text:'誰かが捨て札からカードを回収した直後に使用。その回収カードを奪う。',copies:3,interrupt:'stealRecovered'},
-  {id:92,name:'突然の最終局面',type:'通常',text:'山札が10枚より多いなら、10枚になるまで上から捨て札へ送る。',copies:3,effect:'deckToTen'},
-  {id:93,name:'延長戦入りまーす',type:'通常',text:'捨て札をすべて山札へ戻し、シャッフルする。',copies:3,effect:'extendGame'},
-  {id:94,name:'はい、ここから本番',type:'通常',text:'ゲーム内にいる生存者全員の手札を捨て、それぞれ5枚引き直す。',copies:3,effect:'resetHands'},
-  {id:95,name:'チュートリアル終了',type:'通常',text:'自分の現在ポイントと同じ枚数だけカードを引く。',copies:3,effect:'drawByPoints'},
-  {id:96,name:'強い奴を殴れ',type:'継続',text:'ラウンド終了まで、単体の脱落カードで対象を選ぶ時、可能なら現在ポイント最多のプレイヤーを選ばなければならない。',copies:3,effect:'focusLeader'},
-  {id:97,name:'弱い者いじめ禁止',type:'継続',text:'ラウンド終了か解除まで、現在ポイント最少のプレイヤーはカード効果による脱落から守られる。',copies:3,effect:'protectLast'},
-  {id:98,name:'世の中そんな甘くない',type:'通常',text:'場の《弱い者いじめ禁止》をすべて解除する。',copies:3,effect:'removeProtectLast'},
-  {id:112,name:'このカードは安全です',type:'TRAP',text:'安全確認画面を表示する。詳しい説明を読んだら……？',copies:3,effect:'trapSafe'},
-  {id:113,name:'右を見ろ',type:'TRAP',text:'右側に気になるボタンが出る。押さなければいいだけ。',copies:3,effect:'trapRight'}
+  {id:21,name:'引いたね？',type:'強制',text:'引いた瞬間に公開する。何もしなければ、そのプレイヤーは脱落する。',copies:1,effect:'drawDeath',auto:true,attack:true},
+  {id:22,name:'セーフ！',type:'割込',text:'自分が《引いたね？》を引いた時に使用。その脱落を無効にする。',copies:1,interrupt:'safeDrawDeath'},
+  {id:23,name:'セーフじゃないよ',type:'割込',text:'誰かが《セーフ！》を使った時に使用。《セーフ！》を無効にする。',copies:1,interrupt:'cancelSafeDrawDeath'},
+  {id:24,name:'何も起きません',type:'通常',text:'本当に何も起きない。たぶん。',copies:1,effect:'nothing'},
+  {id:25,name:'何も起きないと思った？',type:'割込',text:'《何も起きません》の直後に使用。使用者以外の生存者は手札を1枚捨てる。捨てられないプレイヤーは脱落する。',copies:1,interrupt:'afterNothing'},
+  {id:26,name:'事故です',type:'通常',text:'ランダムな生存者1人が脱落する。自分も対象。',copies:1,effect:'randomOut',attack:true},
+  {id:27,name:'大事故です',type:'通常',text:'ランダムな生存者2人が脱落する。',copies:1,effect:'doubleRandomOut',attack:true},
+  {id:28,name:'責任者を呼べ！',type:'割込',text:'他プレイヤーのカード効果が解決した直後に使用。そのカードの使用者を脱落させる。',copies:1,interrupt:'callManager'},
+  {id:29,name:'私が責任者です',type:'割込',text:'自分が《責任者を呼べ！》の対象になった時に使用。代わりに《責任者を呼べ！》の使用者を脱落させる。',copies:1,interrupt:'reverseManager'},
+  {id:30,name:'そんなルールあった？',type:'割込',text:'他プレイヤーがカードを使用した直後に使用。そのカードを無効にし、同名カードをこのラウンド中使用禁止にする。',copies:1,interrupt:'banCancel'},
+  {id:31,name:'今作った',type:'割込',text:'《そんなルールあった？》に対して使用。それを無効にし、元のカードを予定通り発動する。',copies:1,interrupt:'unbanCancel'},
+  {id:32,name:'手札見せて♡',type:'通常',text:'他プレイヤー1人の手札を見る。攻撃カードを持っていたら、その中から1枚を奪う。',copies:1,effect:'peekAndSteal'},
+  {id:33,name:'見たな？',type:'割込',text:'自分の手札を見られた直後に使用。覗いたプレイヤーの手札を全員に公開する。',copies:1,interrupt:'counterPeek'},
+  {id:34,name:'目が合ったね',type:'TRAP',text:'プレイヤー1人を指名して視線確認UIを表示する。危険な確認を押したら脱落。',copies:1,effect:'trapEye'},
+  {id:35,name:'今しゃべった？',type:'割込',text:'誰かがゲーム内チャットで発言した直後に使用。その人は手札を1枚捨てる。捨てられなければ脱落。',copies:1,interrupt:'afterChat'},
+  {id:36,name:'静粛に！',type:'継続',text:'次の自分のターン開始まで、チャットで発言したプレイヤーを脱落させる。',copies:1,effect:'silence'},
+  {id:37,name:'いやゲームできないだろ',type:'割込',text:'《静粛に！》の発動時、または効果中に使用。《静粛に！》を解除する。',copies:1,interrupt:'breakSilence'},
+  {id:38,name:'席替えしまーす',type:'通常',text:'全員の手札を左隣へ渡す。',copies:1,effect:'rotateHands'},
+  {id:39,name:'逆だったわ',type:'割込',text:'《席替えしまーす》に対して使用。手札を左ではなく右隣へ渡す。',copies:1,interrupt:'reverseSeat'},
+  {id:40,name:'返して',type:'割込',text:'自分の手札が他人へ渡される直前に使用。移動後、その中から1枚を取り戻し、受け取った相手からさらにランダム1枚を受け取る。',copies:1,interrupt:'takeBack'},
+  {id:41,name:'それ俺の',type:'割込',text:'他プレイヤーが通常ドローした直後に使用。その引いたカードを奪う。',copies:1,interrupt:'stealDraw'},
+  {id:42,name:'欲張りさんね',type:'割込',text:'誰かが他人のカードを奪った直後に使用。そのプレイヤーから最大2枚を奪う。',copies:1,interrupt:'punishSteal'},
+  {id:43,name:'山札なんて信用できない',type:'通常',text:'山札の上から3枚を見て、好きな順番に並べ直す。',copies:1,effect:'reorderTop3'},
+  {id:44,name:'見せろ',type:'割込',text:'《山札なんて信用できない》使用時に使用。見た3枚を全員に公開させる。',copies:1,interrupt:'revealTop3'},
+  {id:45,name:'未来は変えられる',type:'通常',text:'山札から1枚公開する。そのカードの効果文に「脱落」が含まれていれば、自分は即座に2ポイント獲得する。公開したカードは捨て札へ送る。',copies:1,effect:'futureReveal'},
+  {id:46,name:'未来は変えられない',type:'割込',text:'《未来は変えられる》に対して使用。その効果を無効にし、好きな生存者1人を選んで脱落させる。',copies:1,interrupt:'denyFuture'},
+  {id:47,name:'今日の主役',type:'継続',text:'次の自分のターン開始まで、単体カードの対象を選ぶ時、可能なら自分を選ばなければならない。',copies:1,effect:'mainCharacter'},
+  {id:48,name:'空気になりたい',type:'継続',text:'次の自分のターンまで、単体カードの対象にならない。',copies:1,effect:'untargetable'},
+  {id:49,name:'お前いたの？',type:'通常',text:'《空気になりたい》状態のプレイヤー1人を選び、その効果を無視して脱落させる。',copies:1,effect:'findInvisible',attack:true},
+  {id:50,name:'ちょっとトイレ',type:'特殊',text:'次の自分のターン開始までゲーム外へ退避する。退避中はカードの対象にならない。',copies:1,effect:'toilet'},
+  {id:51,name:'戻ってこなくていいよ',type:'割込',text:'《ちょっとトイレ》からプレイヤーが戻る瞬間に使用。そのプレイヤーを脱落させる。',copies:1,interrupt:'denyReturn'},
+  {id:52,name:'遺言',type:'割込',text:'自分が脱落した直後に使用。残り手札をすべて生存者1人へ渡す。',copies:1,interrupt:'lastWill'},
+  {id:53,name:'呪いの遺産',type:'強制',text:'他プレイヤーからこのカードを受け取った瞬間、受け取ったプレイヤーは脱落する。',copies:1,effect:'cursedInheritance',autoTransfer:true,attack:true},
+  {id:54,name:'プレゼント！',type:'通常',text:'自分の残り手札から1枚選び、他プレイヤー1人へ裏向きで渡す。相手は受け取らなければならない。',copies:1,effect:'gift'},
+  {id:55,name:'受取拒否',type:'割込',text:'他プレイヤーからカードを渡される直前に使用。そのカードを送り返す。',copies:1,interrupt:'rejectGift'},
+  {id:56,name:'返品不可です',type:'割込',text:'《受取拒否》に対して使用。それを無効にし、カードを予定通り受け取らせる。',copies:1,interrupt:'noReturns'},
+  {id:57,name:'全員仲良く死のう？',type:'通常',text:'生存者全員を脱落させる。',copies:1,effect:'allOut',attack:true},
+  {id:58,name:'それ勝者いなくない？',type:'割込',text:'全員脱落効果が発生する直前に使用。自分だけその効果を受けずに生き残る。',copies:1,interrupt:'surviveAll'},
+  {id:59,name:'最後に笑うのは俺だ',type:'通常',text:'生存者が自分を含めて2人だけなら使用可能。コイントスし、負けた方が脱落する。',copies:1,effect:'finalCoin',attack:true},
+  {id:60,name:'コインなんてねぇよ',type:'割込',text:'コイントスを行うカードが使われた時に使用。そのカードの使用者を脱落させ、コイントスを中止する。',copies:1,interrupt:'noCoin'},
+  {id:69,name:'今日から逆回りです',type:'継続',text:'ターン進行方向を反転する。以後、再び反転されるまでその向きで進む。',copies:1,effect:'reverse'},
+  {id:70,name:'やっぱ元に戻します',type:'継続',text:'現在のターン進行方向をもう一度反転する。結果として元に戻ることもある。',copies:1,effect:'reverse'},
+  {id:71,name:'手札なんて2枚で十分',type:'継続',text:'手札上限を2枚にする。超過分はランダムで捨てる。',copies:1,effect:'limit2'},
+  {id:72,name:'いっぱい持ってていいよ',type:'継続',text:'手札上限を撤廃する。',copies:1,effect:'noLimit'},
+  {id:73,name:'カード引くの禁止！',type:'継続',text:'次の自分のターン開始まで、誰もカードを引けない。',copies:1,effect:'noDraw'},
+  {id:74,name:'いや引けよ',type:'割込',text:'《カード引くの禁止！》の発動時、またはドローが禁止されている時に使用。禁止を解除し、生存中の全員が1枚引く。',copies:1,interrupt:'breakNoDraw'},
+  {id:75,name:'1ターンに1枚とは言ってない',type:'通常',text:'このカードを使ったターン、このカード以外にさらに2枚までカードを使える。',copies:1,effect:'cheatDraw'},
+  {id:76,name:'言ってるよ',type:'割込',text:'《1ターンに1枚とは言ってない》に対して使用。その効果を無効にし、使ったプレイヤーを脱落させる。',copies:1,interrupt:'callOutCheat'},
+  {id:77,name:'平和条約',type:'継続',text:'次の自分のターン開始まで、脱落を直接起こすカードを使用できない。',copies:1,effect:'peace'},
+  {id:78,name:'条約破棄',type:'通常',text:'場の《平和条約》をすべて解除し、その後プレイヤー1人を選んで脱落させる。',copies:1,effect:'breakPeace',attack:true},
+  {id:79,name:'革命だ！',type:'通常',text:'手札が最も少ない生存者が即座にラウンド勝利する。同数なら、その中からランダムで1人を選ぶ。',copies:1,effect:'revolution'},
+  {id:80,name:'革命失敗',type:'割込',text:'《革命だ！》に対して使用。革命を無効にし、革命を起こそうとしたプレイヤーは残り手札をすべて捨てる。',copies:1,interrupt:'stopRevolution'},
+  {id:81,name:'数字は禁止です',type:'継続',text:'次の自分のターン開始まで、チャットに数字を含めたプレイヤーは脱落する。',copies:1,effect:'banNumbers'},
+  {id:82,name:'カタカナ禁止です',type:'継続',text:'次の自分のターン開始まで、チャットにカタカナを含めたプレイヤーは脱落する。',copies:1,effect:'banKatakana'},
+  {id:83,name:'名前で呼んで',type:'継続',text:'このカードを使ったターンから使用者の次のターン開始まで、各プレイヤーは自分のターン終了までに「次にターンが来るプレイヤーの名前」をチャットへ入力しなければ脱落する。',copies:1,effect:'nameCalling'},
+  {id:84,name:'敬語でお願いします',type:'継続',text:'このカードを出したプレイヤーの次のターン開始まで、チャットは「です・ます」などの丁寧語で終えなければならない。違反したプレイヤーは脱落する。',copies:1,effect:'politeSpeech'},
+  {id:85,name:'黙ってゲームしろ',type:'継続',text:'ラウンド終了か解除まで、チャットで発言したプレイヤーを脱落させる。',copies:1,effect:'chatDraw'},
+  {id:86,name:'喋らないとゲームできないだろ！',type:'割込',text:'《黙ってゲームしろ》の発動時、またはその効果中に使用。《黙ってゲームしろ》をすべて解除する。',copies:1,interrupt:'breakChatDraw'},
+  {id:87,name:'時計回りってどっち？',type:'通常',text:'生存中の全員が「←」か「→」を選ぶ。少数派は1枚引く。同数なら全員2枚引く。全員同じなら何も起きない。',copies:1,effect:'leftRightVote'},
+  {id:88,name:'席順変更！',type:'通常',text:'全員の手札を集めてシャッフルし、できるだけ均等に再配布する。',copies:1,effect:'redistribute'},
+  {id:89,name:'もう誰のカードかわかんねぇよ',type:'通常',text:'捨て札をすべて山札へ戻し、山札をシャッフルする。',copies:1,effect:'recycleAllDiscard'},
+  {id:90,name:'ゴミ箱漁り',type:'通常',text:'このカード自身を除く捨て札から好きなカード1枚を選び、手札に戻す。',copies:1,effect:'recycleChoice'},
+  {id:91,name:'それ捨てたやつだから',type:'割込',text:'誰かが捨て札からカードを回収した直後に使用。その回収カードを奪う。',copies:1,interrupt:'stealRecovered'},
+  {id:92,name:'突然の最終局面',type:'通常',text:'山札が10枚より多いなら、10枚になるまで上から捨て札へ送る。',copies:1,effect:'deckToTen'},
+  {id:93,name:'延長戦入りまーす',type:'通常',text:'捨て札をすべて山札へ戻し、シャッフルする。',copies:1,effect:'extendGame'},
+  {id:94,name:'はい、ここから本番',type:'通常',text:'ゲーム内にいる生存者全員の手札を捨て、それぞれ5枚引き直す。',copies:1,effect:'resetHands'},
+  {id:95,name:'チュートリアル終了',type:'通常',text:'自分の現在ポイントと同じ枚数だけカードを引く。',copies:1,effect:'drawByPoints'},
+  {id:96,name:'強い奴を殴れ',type:'継続',text:'ラウンド終了まで、単体の脱落カードで対象を選ぶ時、可能なら現在ポイント最多のプレイヤーを選ばなければならない。',copies:1,effect:'focusLeader'},
+  {id:97,name:'弱い者いじめ禁止',type:'継続',text:'ラウンド終了か解除まで、現在ポイント最少のプレイヤーはカード効果による脱落から守られる。',copies:1,effect:'protectLast'},
+  {id:98,name:'世の中そんな甘くない',type:'通常',text:'場の《弱い者いじめ禁止》をすべて解除する。',copies:1,effect:'removeProtectLast'},
+  {id:112,name:'このカードは安全です',type:'TRAP',text:'安全確認画面を表示する。詳しい説明を読んだら……？',copies:1,effect:'trapSafe'},
+  {id:113,name:'右を見ろ',type:'TRAP',text:'右側に気になるボタンが出る。押さなければいいだけ。',copies:1,effect:'trapRight'}
 ];
 const cardById = (id) => baseCards.find((c) => c.id === Number(id));
-const COPIES_PER_CARD = 3;
+const COPIES_PER_CARD = 1;
 function buildDeck() {
   const deck = [];
   for (const c of baseCards) {
@@ -165,6 +165,7 @@ class Room {
       away: false,
       untargetable: false,
       playedThisTurn: 0,
+      playLimit: 1,
     }];
     this.status = 'lobby';
     this.streams = new Map();
@@ -273,6 +274,7 @@ function publicState(room, viewerId) {
       connected: p.connected,
       handCount: p.hand.length,
       playedThisTurn: p.playedThisTurn,
+      playLimit: p.playLimit || 1,
       statusText: getPlayerStatusText(room, p),
     })),
     myHand: me ? me.hand.map((c) => ({ uid: c.uid, id: c.id, name: c.name, type: c.type, text: c.text, attack: !!c.attack })) : [],
@@ -282,7 +284,7 @@ function publicState(room, viewerId) {
     lastPlayed: g.lastPlayed,
     canDraw: !!me && me.alive && !me.away && cur?.id === me.id && !g.drawnThisTurn && !g.roundLocked,
     canEndTurn: !!me && me.alive && cur?.id === me.id && !g.roundLocked,
-    canPlayTurnCard: !!me && me.alive && !me.away && cur?.id === me.id && me.playedThisTurn < 1 && !g.roundLocked,
+    canPlayTurnCard: !!me && me.alive && !me.away && cur?.id === me.id && me.playedThisTurn < (me.playLimit || 1) && !g.roundLocked,
   };
 }
 
@@ -395,6 +397,7 @@ function startRound(room) {
     p.away = false;
     p.untargetable = false;
     p.playedThisTurn = 0;
+    p.playLimit = 1;
   });
   for (let n = 0; n < 5; n++) g.players.forEach((p) => { if (g.deck.length) p.hand.push(g.deck.pop()); });
   log(room, `ラウンド${g.round}開始。全員5枚。通常・継続・特殊・TRAPは自分のターンに1枚、割込は条件成立時に別枠。${room.testMode ? '【2人テストモード】' : ''}`, 'win');
@@ -464,7 +467,7 @@ async function drawCard(room, player, announce = true) {
   return card;
 }
 
-async function askTarget(room, source, title, { includeSelf = false, candidates = null, includeAway = false, ignoreUntargetable = false, attackTargeting = false, ignoreMainCharacter = false } = {}) {
+async function askTarget(room, source, title, { includeSelf = false, candidates = null, includeAway = false, ignoreUntargetable = false, attackTargeting = false, ignoreMainCharacter = false, allowCancel = true } = {}) {
   let choices = (candidates || (includeAway ? alivePlayers(room) : targetablePlayers(room)))
     .filter((p) => p.alive && (includeAway || !p.away) && (ignoreUntargetable || !p.untargetable) && (includeSelf || p.id !== source?.id));
   if (attackTargeting && room.game.rules.some((r) => r.kind === 'focusLeader') && choices.length) {
@@ -478,8 +481,8 @@ async function askTarget(room, source, title, { includeSelf = false, candidates 
   }
   if (!choices.length) return null;
   const options = choices.map((p) => ({ label: p.name, value: p.id }));
-  options.push({ label: 'やめる', value: '' });
-  const selected = await askPlayer(room, source.id, { title, message: '対象を選んで。', options, defaultValue: '' });
+  if (allowCancel) options.push({ label: 'やめる', value: '' });
+  const selected = await askPlayer(room, source.id, { title, message: '対象を選んで。', options, defaultValue: allowCancel ? '' : choices[0].id });
   return selected ? room.game.players.find((p) => p.id === selected) || null : null;
 }
 async function askCardFromHand(room, player, title, { filter = null, allowCancel = false } = {}) {
@@ -685,7 +688,7 @@ async function playCard(room, playerId, uid) {
   if (!card) throw new Error('そのカードは手札にないわ。');
   if (card.type === '割込') throw new Error('割込カードは条件成立時に使うカードよ。');
   if (card.type === '強制') throw new Error('強制カードは自分から使えないわ。');
-  if (p.playedThisTurn >= 1) throw new Error('このターンはもう1枚使ってるわ。');
+  if (p.playedThisTurn >= (p.playLimit || 1)) throw new Error(`このターンに使えるカードはもう${p.playLimit || 1}枚使ってるわ。`);
   if (g.bannedNames.includes(card.name)) throw new Error('そのカード名はこのラウンド中使用禁止よ。');
   if (card.id === 20 && p.hand.length !== 1) throw new Error('《THE クールソウル》は最後の手札でないと使えないわ。');
   if (card.id === 59 && (alivePlayers(room).length !== 2 || alivePlayers(room).some((x) => x.away))) throw new Error('生存者がちょうど2人の時だけ使えるわ。');
@@ -765,7 +768,7 @@ async function resolveCardEffect(room, card, p, { copy = false, randomTarget = f
     case 'trapEye': await trapEye(room, p, randomTarget); break;
     case 'silence': g.rules.push({ kind: 'silence', owner: p.id, label: `🤫 静粛に！（${p.name}の次ターン開始まで）` }); log(room, '《静粛に！》が有効。チャットで発言すると脱落する。', 'rule'); break;
     case 'reorderTop3': await reorderTop3(room, p); break;
-    case 'discardTop': await discardTop(room, p); break;
+    case 'futureReveal': await futureReveal(room, p); break;
     case 'mainCharacter': p.untargetable = false; g.rules = g.rules.filter((r) => !(r.kind === 'mainCharacter' && r.owner === p.id)); g.rules.push({ kind: 'mainCharacter', owner: p.id, label: `🌟 今日の主役：${p.name}` }); log(room, `${p.name}が今日の主役になった。単体対象は可能なら${p.name}へ。`, 'rule'); break;
     case 'untargetable': p.untargetable = true; g.rules.push({ kind: 'untargetable', owner: p.id, label: `☁ ${p.name}: 空気状態` }); log(room, `${p.name}は空気になった。`, 'rule'); break;
     case 'findInvisible': {
@@ -786,14 +789,29 @@ async function resolveCardEffect(room, card, p, { copy = false, randomTarget = f
     case 'peace': g.rules.push({ kind: 'peace', owner: p.id, label: `🕊 平和条約（${p.name}の次ターン開始まで）` }); log(room, '平和条約が結ばれた。', 'rule'); break;
     case 'breakPeace': await breakPeace(room, p); break;
     case 'revolution': await revolution(room, p); break;
-    case 'banNumbers': g.rules.push({ kind: 'banNumbers', owner: p.id, label: `🔢 数字は禁止（${p.name}の次ターン開始まで）` }); break;
-    case 'banKatakana': g.rules.push({ kind: 'banKatakana', owner: p.id, label: `🈲 カタカナ禁止（${p.name}の次ターン開始まで）` }); break;
-    case 'nameCalling': g.rules.push({ kind: 'nameCalling', owner: p.id, label: `📛 名前で呼んで（${p.name}の次ターン開始まで）` }); break;
-    case 'politeSpeech': g.rules.push({ kind: 'politeSpeech', owner: p.id, label: `🎩 敬語でお願いします（${p.name}の次ターン開始まで）` }); break;
+    case 'banNumbers': g.rules.push({ kind: 'banNumbers', owner: p.id, label: `🔢 数字は禁止：数字をチャットすると脱落（${p.name}の次ターン開始まで）` }); break;
+    case 'banKatakana': g.rules.push({ kind: 'banKatakana', owner: p.id, label: `🈲 カタカナ禁止：カタカナをチャットすると脱落（${p.name}の次ターン開始まで）` }); break;
+    case 'nameCalling': {
+      g.rules = g.rules.filter((r) => !(r.kind === 'nameCalling' && r.owner === p.id));
+      const rule = {
+        kind: 'nameCalling',
+        owner: p.id,
+        obligations: {},
+        label: `📛 名前で呼んで：各自、ターン終了までに次プレイヤー名をチャット（${p.name}の次ターン開始まで）`
+      };
+      g.rules.push(rule);
+      initializeNameCallingObligation(room, p);
+      const obligation = rule.obligations[p.id];
+      if (obligation?.requiredName) {
+        log(room, `《名前で呼んで》発動。${p.name}はこのターン終了までに「${obligation.requiredName}」をチャットしないと脱落。以後、全員に同じ義務が回る。`, 'rule');
+      }
+      break;
+    }
+    case 'politeSpeech': g.rules.push({ kind: 'politeSpeech', owner: p.id, label: `🎩 敬語でお願いします：違反すると脱落（${p.name}の次ターン開始まで）` }); break;
     case 'chatDraw': {
       const breaker = await askFirstInterruptHolder(room, 86, '喋らないとゲームできないだろ！', '《黙ってゲームしろ》を即解除する？', { excludeIds: [p.id] });
       if (breaker) log(room, '《黙ってゲームしろ》は即座に解除された。', 'rule');
-      else g.rules.push({ kind: 'chatDraw', owner: null, label: '💬 黙ってゲームしろ：発言するたび1枚引く' });
+      else g.rules.push({ kind: 'chatDraw', owner: null, label: '💬 黙ってゲームしろ：チャットで発言したら脱落' });
       break;
     }
     case 'leftRightVote': await runLeftRightVote(room); break;
@@ -964,17 +982,41 @@ function permute(arr) {
   return out;
 }
 
-async function discardTop(room, source) {
+async function futureReveal(room, source) {
   if (!(await ensureDeck(room))) return;
-  const blocker = await askFirstInterruptHolder(room, 46, '未来は変えられない', `${source.name}が山札トップを捨てようとしている。捨てずに使用者へ引かせる？`, { excludeIds: [source.id] });
+  const blocker = await askFirstInterruptHolder(
+    room,
+    46,
+    '未来は変えられない',
+    `${source.name}が《未来は変えられる》で山札トップを公開しようとしている。無効化して好きなプレイヤーを脱落させる？`,
+    { excludeIds: [source.id] }
+  );
   if (blocker) {
-    interruptFx(room, [{ name: '未来は変えられる', owner: source.name }, { name: '未来は変えられない', owner: blocker.player.name }], blocker.player.id);
-    await drawCard(room, source, false);
+    interruptFx(
+      room,
+      [{ name: '未来は変えられる', owner: source.name }, { name: '未来は変えられない', owner: blocker.player.name }],
+      blocker.player.id
+    );
+    const target = await askTarget(room, blocker.player, '《未来は変えられない》：脱落させるプレイヤーを選択', { attackTargeting: true, allowCancel: false });
+    if (target) await attemptEliminate(room, target, '《未来は変えられない》', blocker.player);
     return;
   }
+
   const c = room.game.deck.pop();
   room.game.discard.push(c);
-  log(room, `山札トップ《${c.name}》を捨てた。`, 'rule');
+  const hasElimination = String(c.text || '').includes('脱落');
+  log(room, `🔮 《未来は変えられる》で山札トップ《${c.name}》を公開。効果文${hasElimination ? 'に' : 'には'}「脱落」が${hasElimination ? 'ある！' : 'ない。'}`, hasElimination ? 'win' : 'rule');
+
+  if (hasElimination && source.alive) {
+    source.points += 2;
+    log(room, `✨ ${source.name}が《未来は変えられる》で +2ポイント！ 現在${source.points}ポイント。`, 'win');
+    pushFx(room, { type: 'points', name: source.name, points: source.points, amount: 2, reason: '《未来は変えられる》' });
+    if (source.points >= 3) {
+      finishGame(room, source, '《未来は変えられる》で3ポイント到達');
+      return;
+    }
+  }
+  pushState(room);
 }
 
 async function rotateHandsChaos(room, source) {
@@ -1036,17 +1078,12 @@ async function allOut(room, p) {
 async function cheatDraw(room, p) {
   const blocker = await askFirstInterruptHolder(room, 76, '言ってるよ', `${p.name}の《1ターンに1枚とは言ってない》を止める？`, { excludeIds: [p.id] });
   if (blocker) {
-    if (p.hand.length) {
-      const c = await askCardFromHand(room, p, '《言ってるよ》：残り手札を1枚捨てる');
-      if (c) room.game.discard.push(p.hand.splice(p.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
-    }
+    interruptFx(room, [{ name: '1ターンに1枚とは言ってない', owner: p.name }, { name: '言ってるよ', owner: blocker.player.name }], blocker.player.id);
+    await attemptEliminate(room, p, '《言ってるよ》', blocker.player);
     return;
   }
-  if (p.hand.length) {
-    const c = await askCardFromHand(room, p, '捨てるカードを1枚選択');
-    if (c) room.game.discard.push(p.hand.splice(p.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
-  }
-  await drawCard(room, p, false); if (p.alive) await drawCard(room, p, false);
+  p.playLimit = Math.max(p.playLimit || 1, 3);
+  log(room, `${p.name}はこのターン、《1ターンに1枚とは言ってない》以外にさらに2枚使える。`, 'rule');
 }
 async function breakPeace(room, p) {
   room.game.rules = room.game.rules.filter((r) => r.kind !== 'peace');
@@ -1060,10 +1097,13 @@ async function revolution(room, p) {
     log(room, `${p.name}の革命は失敗し、残り手札をすべて捨てた。`, 'danger');
     return;
   }
-  const vals = room.game.players.map((x) => x.points);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  room.game.players.forEach((x) => { x.points = max + min - x.points; });
-  log(room, '革命成功。ポイント順位が反転した。', 'rule');
+  const candidates = alivePlayers(room).filter((x) => !x.away);
+  if (!candidates.length) return;
+  const min = Math.min(...candidates.map((x) => x.hand.length));
+  const tied = candidates.filter((x) => x.hand.length === min);
+  const winner = tied[Math.floor(Math.random() * tied.length)];
+  log(room, `革命成功。手札最少は ${tied.map((x) => `${x.name}(${x.hand.length}枚)`).join('、')}。${winner.name}がラウンド勝利候補になった。`, 'rule');
+  await specialRoundWin(room, winner, '《革命だ！》');
 }
 
 async function runLeftRightVote(room) {
@@ -1149,6 +1189,20 @@ async function specialRoundWin(room, winner, reason) {
   await awardRoundWin(room, winner, reason);
   return true;
 }
+function finishGame(room, winner, reason = '') {
+  const g = room.game;
+  if (g.gameOver) return;
+  g.gameOver = true;
+  g.roundLocked = true;
+  g.winnerId = winner.id;
+  g.finalStandings = [...g.players]
+    .sort((a, b) => (b.points - a.points) || (a.id === winner.id ? -1 : b.id === winner.id ? 1 : 0))
+    .map((p, index) => ({ rank: index + 1, id: p.id, name: p.name, points: p.points }));
+  log(room, `🏆 ${winner.name}が${winner.points}ポイントでゲーム勝利！${reason ? `（${reason}）` : ''}`, 'win');
+  pushFx(room, { type: 'gameWin', name: winner.name, points: winner.points, reason });
+  pushState(room);
+}
+
 async function awardRoundWin(room, winner, reason) {
   const g = room.game;
   if (g.roundLocked) return;
@@ -1158,13 +1212,7 @@ async function awardRoundWin(room, winner, reason) {
   pushFx(room, { type: 'roundWin', name: winner.name, points: winner.points, reason });
   pushState(room);
   if (winner.points >= 3) {
-    g.gameOver = true;
-    g.winnerId = winner.id;
-    g.finalStandings = [...g.players]
-      .sort((a, b) => (b.points - a.points) || (a.id === winner.id ? -1 : b.id === winner.id ? 1 : 0))
-      .map((p, index) => ({ rank: index + 1, id: p.id, name: p.name, points: p.points }));
-    pushFx(room, { type: 'gameWin', name: winner.name, points: winner.points });
-    pushState(room);
+    finishGame(room, winner, reason);
     return;
   }
   setTimeout(() => {
@@ -1240,11 +1288,61 @@ async function trapRight(room, p) {
   if (choice === 'danger') await attemptEliminate(room, p, '右を見た', null, { allowReflect: false, allowPrevent: true });
 }
 
+function peekNextAlivePlayer(room) {
+  const g = room.game;
+  if (!g?.players?.length) return null;
+  let idx = g.current;
+  for (let guard = 0; guard < g.players.length; guard++) {
+    idx = (idx + g.direction + g.players.length) % g.players.length;
+    const candidate = g.players[idx];
+    if (candidate?.alive) return candidate;
+  }
+  return null;
+}
+
+function initializeNameCallingObligation(room, player) {
+  const g = room.game;
+  if (!player?.alive || player.away) return;
+  const next = peekNextAlivePlayer(room);
+  if (!next) return;
+  for (const rule of g.rules.filter((r) => r.kind === 'nameCalling')) {
+    if (!rule.obligations) rule.obligations = {};
+    rule.obligations[player.id] = { requiredName: next.name, satisfied: false };
+  }
+}
+
+async function enforceNameCallingBeforeEnd(room, player) {
+  const g = room.game;
+  const activeRules = g.rules.filter((r) => r.kind === 'nameCalling');
+  if (!activeRules.length || !player.alive) return;
+
+  const failed = activeRules.some((r) => {
+    const obligation = r.obligations?.[player.id];
+    return obligation && !obligation.satisfied;
+  });
+
+  for (const rule of activeRules) {
+    if (rule.obligations) delete rule.obligations[player.id];
+  }
+
+  if (failed && player.alive) {
+    const next = peekNextAlivePlayer(room);
+    await attemptEliminate(
+      room,
+      player,
+      `《名前で呼んで》：${next ? `次プレイヤー「${next.name}」` : '次プレイヤー'}の名前をチャットしなかった`,
+      null,
+      { allowReflect: false }
+    );
+  }
+}
+
 async function sendChat(room, player, text) {
   const g = room.game;
   if (!player?.alive || player.away || g.roundLocked || !text) return;
   text = String(text).slice(0, 100);
   log(room, `💬 ${player.name}「${text}」`, 'normal');
+
   const silenceRules = g.rules.filter((r) => r.kind === 'silence');
   if (silenceRules.length) {
     const breaker = await askFirstInterruptHolder(room, 37, '静粛に解除', '今なら《静粛に！》を解除できる。使う？');
@@ -1255,32 +1353,50 @@ async function sendChat(room, player, text) {
       pushState(room); return;
     }
   }
-  const afterChat = await askFirstInterruptHolder(room, 35, '今しゃべった？', `${player.name}が発言した。手札1枚を捨てさせる？`, { excludeIds: [player.id] });
-  if (afterChat) {
-    if (!player.hand.length) await attemptEliminate(room, player, '《今しゃべった？》で捨てる手札がない', afterChat.player);
-    else {
-      const c = await askCardFromHand(room, player, '《今しゃべった？》：1枚捨てる');
-      if (c) g.discard.push(player.hand.splice(player.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
+
+  // 《名前で呼んで》：効果中は全員が、自分のターン終了までに次プレイヤー名を入力する。
+  for (const rule of g.rules.filter((r) => r.kind === 'nameCalling')) {
+    const obligation = rule.obligations?.[player.id];
+    if (obligation && !obligation.satisfied && obligation.requiredName && text.includes(obligation.requiredName)) {
+      obligation.satisfied = true;
+      log(room, `📛 ${player.name}が次プレイヤー「${obligation.requiredName}」の名前を呼んだ。セーフ。`, 'rule');
     }
   }
-  if (/\d/.test(text) && g.rules.some((r) => r.kind === 'banNumbers') && player.hand.length) {
-    const c = await askCardFromHand(room, player, '数字は禁止：1枚捨てる');
-    if (c) g.discard.push(player.hand.splice(player.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
-  }
-  if (/[ァ-ヶー]/.test(text) && g.rules.some((r) => r.kind === 'banKatakana')) await drawCard(room, player, false);
-  if (g.rules.some((r) => r.kind === 'nameCalling')) {
-    const rough = /(お前|君|あなた|あんた|こいつ|そいつ|あいつ)/.test(text);
-    const named = g.players.some((x) => text.includes(x.name));
-    if (rough && !named && player.hand.length) {
-      const c = await askCardFromHand(room, player, '名前で呼んで：1枚捨てる');
-      if (c) g.discard.push(player.hand.splice(player.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
+
+  if (/\d/.test(text)) {
+    const rule = g.rules.find((r) => r.kind === 'banNumbers');
+    if (rule && player.alive) {
+      const owner = g.players.find((x) => x.id === rule.owner) || null;
+      await attemptEliminate(room, player, '《数字は禁止です》違反', owner, { allowReflect: false });
     }
   }
-  if (g.rules.some((r) => r.kind === 'politeSpeech') && !/(です|ます|でした|ました|ません|ございます)[。！!？?]*$/.test(text)) await drawCard(room, player, false);
-  if (g.rules.some((r) => r.kind === 'chatDraw')) {
+  if (/[ァ-ヶー]/.test(text)) {
+    const rule = g.rules.find((r) => r.kind === 'banKatakana');
+    if (rule && player.alive) {
+      const owner = g.players.find((x) => x.id === rule.owner) || null;
+      await attemptEliminate(room, player, '《カタカナ禁止です》違反', owner, { allowReflect: false });
+    }
+  }
+  if (g.rules.some((r) => r.kind === 'politeSpeech') && player.alive && !/(です|ます|でした|ました|ません|ございます)[。！!？?]*$/.test(text)) {
+    const rule = g.rules.find((r) => r.kind === 'politeSpeech');
+    const owner = g.players.find((x) => x.id === rule?.owner) || null;
+    await attemptEliminate(room, player, '《敬語でお願いします》違反', owner, { allowReflect: false });
+  }
+  if (g.rules.some((r) => r.kind === 'chatDraw') && player.alive) {
     const breaker = await askFirstInterruptHolder(room, 86, '喋らないとゲームできないだろ！', '《黙ってゲームしろ》を解除する？');
     if (breaker) g.rules = g.rules.filter((r) => r.kind !== 'chatDraw');
-    else await drawCard(room, player, false);
+    else await attemptEliminate(room, player, '《黙ってゲームしろ》中に発言した', null, { allowReflect: false });
+  }
+
+  if (player.alive) {
+    const afterChat = await askFirstInterruptHolder(room, 35, '今しゃべった？', `${player.name}が発言した。手札1枚を捨てさせる？`, { excludeIds: [player.id] });
+    if (afterChat) {
+      if (!player.hand.length) await attemptEliminate(room, player, '《今しゃべった？》で捨てる手札がない', afterChat.player);
+      else {
+        const c = await askCardFromHand(room, player, '《今しゃべった？》：1枚捨てる');
+        if (c) g.discard.push(player.hand.splice(player.hand.findIndex((x) => x.uid === c.uid), 1)[0]);
+      }
+    }
   }
   checkRoundEnd(room);
   pushState(room);
@@ -1301,6 +1417,7 @@ async function advanceTurn(room) {
     incoming.untargetable = false;
     g.rules = g.rules.filter((r) => r.owner !== incoming.id);
     incoming.playedThisTurn = 0;
+    incoming.playLimit = 1;
     g.drawnThisTurn = false;
     if (incoming.away) {
       incoming.away = false;
@@ -1311,6 +1428,12 @@ async function advanceTurn(room) {
         if (checkRoundEnd(room)) return;
         if (!incoming.alive) continue;
       }
+    }
+    initializeNameCallingObligation(room, incoming);
+    const nameRule = g.rules.find((r) => r.kind === 'nameCalling' && r.obligations?.[incoming.id]);
+    if (nameRule) {
+      const required = nameRule.obligations[incoming.id]?.requiredName;
+      if (required) log(room, `📛 ${incoming.name}の義務：ターン終了までに次プレイヤー「${required}」をチャット。`, 'rule');
     }
     pushState(room);
     return;
@@ -1326,6 +1449,7 @@ function resetForRematch(room) {
     p.away = false;
     p.untargetable = false;
     p.playedThisTurn = 0;
+    p.playLimit = 1;
   });
   startGame(room, !!room.testMode);
 }
@@ -1402,6 +1526,7 @@ async function handleAction(room, playerId, action, payload = {}) {
         break;
       case 'endTurn': {
         if (currentPlayer(room)?.id !== player.id || g.roundLocked || !player.alive) throw new Error('今はターンを終了できないわ。');
+        await enforceNameCallingBeforeEnd(room, player);
         if (!checkRoundEnd(room)) await advanceTurn(room);
         break;
       }
@@ -1430,7 +1555,7 @@ async function apiHandler(req, res, pathname) {
       if (!room) return json(res, 404, { error: 'ルームが見つからないわ。' });
       if (room.status !== 'lobby') return json(res, 409, { error: 'このルームはもうゲーム中よ。' });
       if (room.players.length >= 8) return json(res, 409, { error: '8人で満員よ。' });
-      const p = { id: randomId(), token: randomId(), name: sanitizeName(body.name), connected: true, points: 0, hand: [], alive: true, away: false, untargetable: false, playedThisTurn: 0 };
+      const p = { id: randomId(), token: randomId(), name: sanitizeName(body.name), connected: true, points: 0, hand: [], alive: true, away: false, untargetable: false, playedThisTurn: 0, playLimit: 1 };
       room.players.push(p);
       pushState(room);
       return json(res, 200, { roomCode: room.code, playerId: p.id, token: p.token, state: publicState(room, p.id) });
