@@ -105,6 +105,14 @@ const baseCards = [
   {id:58,name:'それ勝者いなくない？',type:'割込',text:'全員脱落効果が発生する直前に使用。自分だけその効果を受けずに生き残る。',copies:1,interrupt:'surviveAll'},
   {id:59,name:'最後に笑うのは俺だ',type:'通常',text:'生存者が自分を含めて2人だけなら使用可能。コイントスし、負けた方が脱落する。',copies:1,effect:'finalCoin',attack:true},
   {id:60,name:'コインなんてねぇよ',type:'割込',text:'コイントスを行うカードが使われた時に使用。そのカードの使用者を脱落させ、コイントスを中止する。',copies:1,interrupt:'noCoin'},
+  {id:61,name:'押すなよ？',type:'TRAP',text:'他プレイヤー1人に5秒間「押すな」ボタンを表示する。押したら脱落。押さずに待てばセーフ。',copies:1,effect:'trapDontPush'},
+  {id:62,name:'閉じるな危険',type:'TRAP',text:'他プレイヤー1人に偽ポップアップを表示する。「×」や「閉じる」を押したら脱落。5秒待てばセーフ。',copies:1,effect:'trapDontClose'},
+  {id:63,name:'読み込み中…',type:'TRAP',text:'他プレイヤー1人に偽ローディングを表示する。「待てないのでスキップ」を押したら脱落。最後まで待てばセーフ。',copies:1,effect:'trapLoading'},
+  {id:64,name:'マウスを動かすな',type:'TRAP',text:'他プレイヤー1人に4秒間「動くな」と表示する。PCではマウス移動・クリック、スマホではタップ・スワイプで脱落。',copies:1,effect:'trapStill'},
+  {id:65,name:'同意したね？',type:'TRAP',text:'他プレイヤー1人に偽の利用規約を表示する。「同意して続行」を押したら脱落。「同意しない」ならセーフ。',copies:1,effect:'trapConsent'},
+  {id:66,name:'再接続しますか？',type:'TRAP',text:'他プレイヤー1人に偽の接続切断通知を表示する。「再接続」を押したら脱落。6秒無視すればセーフ。',copies:1,effect:'trapReconnect'},
+  {id:67,name:'どっちでもいいよ',type:'TRAP',text:'他プレイヤー1人に同じ見た目の「こっち」ボタンを2つ表示する。片方はセーフ、片方は脱落。5秒以内に選ばなくても脱落。',copies:1,effect:'trapEither'},
+  {id:68,name:'OKって打って',type:'TRAP',text:'他プレイヤー1人に「チャットにOKと入力してください」と表示する。実際にOKと送信したら脱落。5秒間入力しなければセーフ。',copies:1,effect:'trapTypeOK'},
   {id:69,name:'今日から逆回りです',type:'継続',text:'ターン進行方向を反転する。以後、再び反転されるまでその向きで進む。',copies:1,effect:'reverse'},
   {id:70,name:'やっぱ元に戻します',type:'継続',text:'現在のターン進行方向をもう一度反転する。結果として元に戻ることもある。',copies:1,effect:'reverse'},
   {id:71,name:'手札なんて2枚で十分',type:'継続',text:'手札上限を2枚にする。超過分はランダムで捨てる。',copies:1,effect:'limit2'},
@@ -311,6 +319,10 @@ function pushPrompt(room, playerId, prompt) {
   const res = room.streams.get(playerId);
   if (res && !res.writableEnded) sseSend(res, 'prompt', prompt);
 }
+function pushPromptClose(room, playerId, requestId, reason = 'done') {
+  const res = room.streams.get(playerId);
+  if (res && !res.writableEnded) sseSend(res, 'promptClose', { requestId, reason });
+}
 
 async function askPlayer(room, playerId, { title, message = '', options = [], skin = 'normal', kind = 'choice', timeoutMs = 45000, defaultValue = null }) {
   const player = gamePlayer(room, playerId);
@@ -320,8 +332,9 @@ async function askPlayer(room, playerId, { title, message = '', options = [], sk
   return await new Promise((resolve) => {
     const timer = setTimeout(() => {
       room.prompts.delete(requestId);
+      pushPromptClose(room, playerId, requestId, 'timeout');
       resolve(defaultValue);
-      pushNotice(room, playerId, { text: '選択時間切れ。既定の処理で進行したわ。' });
+      if (kind !== 'trap') pushNotice(room, playerId, { text: '選択時間切れ。既定の処理で進行したわ。' });
     }, timeoutMs);
     room.prompts.set(requestId, { playerId, resolve, timer, payload });
     pushPrompt(room, playerId, payload);
@@ -832,6 +845,14 @@ async function resolveCardEffect(room, card, p, { copy = false, randomTarget = f
     case 'focusLeader': g.rules.push({ kind: 'focusLeader', owner: null, label: '🎯 強い奴を殴れ：単体脱落はポイント最多を優先' }); break;
     case 'protectLast': g.rules.push({ kind: 'protectLast', owner: null, label: '🛡 弱い者いじめ禁止：ポイント最少はカード脱落から保護' }); break;
     case 'removeProtectLast': g.rules = g.rules.filter((r) => r.kind !== 'protectLast'); log(room, '《弱い者いじめ禁止》を解除した。', 'rule'); break;
+    case 'trapDontPush': await trapDontPush(room, p, randomTarget); break;
+    case 'trapDontClose': await trapDontClose(room, p, randomTarget); break;
+    case 'trapLoading': await trapLoading(room, p, randomTarget); break;
+    case 'trapStill': await trapStill(room, p, randomTarget); break;
+    case 'trapConsent': await trapConsent(room, p, randomTarget); break;
+    case 'trapReconnect': await trapReconnect(room, p, randomTarget); break;
+    case 'trapEither': await trapEither(room, p, randomTarget); break;
+    case 'trapTypeOK': await trapTypeOK(room, p, randomTarget); break;
     case 'trapSafe': await trapSafe(room, p); break;
     case 'trapRight': await trapRight(room, p); break;
     default: log(room, `《${card.name}》のオンライン効果が見つからない。`, 'danger');
@@ -1263,6 +1284,115 @@ async function redistribute(room) {
   }
 }
 
+
+function trapTargets(room, source) {
+  return targetablePlayers(room).filter((x) => x.id !== source.id && !x.untargetable);
+}
+async function pickTrapTarget(room, source, title, randomTarget = false) {
+  const cands = trapTargets(room, source);
+  if (!cands.length) { log(room, `《${title}》の対象にできる相手がいない。`, 'rule'); return null; }
+  return randomTarget ? shuffle(cands)[0] : await askTarget(room, source, `${title}：対象を選択`, { candidates: cands });
+}
+async function runTimedTargetTrap(room, source, target, cfg) {
+  if (!target) return;
+  room.game.lastPlayed.target = target.name;
+  trackTrap(room, cfg.name, `${target.name}にUIトラップを表示中。`);
+  pushState(room);
+  const choice = await askPlayer(room, target.id, {
+    title: cfg.title || cfg.name,
+    skin: cfg.skin || 'trap',
+    kind: 'trap',
+    message: cfg.message || '',
+    options: cfg.options || [],
+    timeoutMs: cfg.timeoutMs || 5000,
+    defaultValue: cfg.defaultValue ?? 'safe'
+  });
+  room.game.activeTrap = null;
+  if (choice === 'danger' && target.alive) {
+    await attemptEliminate(room, target, `《${cfg.name}》`, source, { allowReflect: false, allowPrevent: true });
+  } else if (target.alive) {
+    log(room, `🛡 ${target.name}は《${cfg.name}》を回避した。`, 'rule');
+  }
+}
+async function trapDontPush(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, '押すなよ？', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: '押すなよ？', timeoutMs: 5000, defaultValue: 'safe',
+    title: '⚠ 操作しないでください',
+    message: '5秒間、このボタンを絶対に押さないでください。\n\n押さなければ何も起きません。たぶん。',
+    options: [{ label: '押すな', value: 'danger', primary: true }]
+  });
+}
+async function trapDontClose(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, '閉じるな危険', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: '閉じるな危険', timeoutMs: 5000, defaultValue: 'safe', skin: 'trap-close',
+    title: '重要なお知らせ',
+    message: 'このウィンドウは5秒後に自動で閉じます。\n右上の「×」や「閉じる」は押さないでください。',
+    options: []
+  });
+}
+async function trapLoading(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, '読み込み中…', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: '読み込み中…', timeoutMs: 5000, defaultValue: 'safe', skin: 'trap-loading',
+    title: '読み込み中…',
+    message: '処理しています……\n████████░░ 82%\n\n少々お待ちください。',
+    options: [{ label: '待てないのでスキップ', value: 'danger', primary: true }]
+  });
+}
+async function trapStill(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, 'マウスを動かすな', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: 'マウスを動かすな', timeoutMs: 4000, defaultValue: 'safe', skin: 'trap-still',
+    title: '動くな。',
+    message: '0.5秒後から4秒間判定。\nPC：マウスを動かす・クリックでアウト。\nスマホ：タップ・スワイプでアウト。\n\n何もしなければセーフ。',
+    options: []
+  });
+}
+async function trapConsent(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, '同意したね？', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: '同意したね？', timeoutMs: 8000, defaultValue: 'safe', skin: 'trap-consent',
+    title: '利用規約の更新',
+    message: 'ゲームを続行するには、更新された利用規約をご確認ください。\n\n※同意は任意です。',
+    options: [
+      { label: '同意しない', value: 'safe' },
+      { label: '同意して続行', value: 'danger', primary: true }
+    ]
+  });
+}
+async function trapReconnect(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, '再接続しますか？', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: '再接続しますか？', timeoutMs: 6000, defaultValue: 'safe', skin: 'trap-reconnect',
+    title: '⚠ 接続が不安定です',
+    message: 'サーバーとの接続が切断されました。\n6秒ほどお待ちください。\n\n※「再接続」を押す必要はありません。',
+    options: [{ label: '再接続', value: 'danger', primary: true }]
+  });
+}
+async function trapEither(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, 'どっちでもいいよ', randomTarget);
+  const opts = Math.random() < 0.5
+    ? [{ label: 'こっち', value: 'safe' }, { label: 'こっち', value: 'danger', primary: true }]
+    : [{ label: 'こっち', value: 'danger', primary: true }, { label: 'こっち', value: 'safe' }];
+  await runTimedTargetTrap(room, source, target, {
+    name: 'どっちでもいいよ', timeoutMs: 5000, defaultValue: 'danger', skin: 'trap-either',
+    title: 'どっちでもいいよ',
+    message: '好きな方を選んで。\n見た目は同じ。結果は同じとは言ってない。\n\n5秒以内に選ばなくてもアウト。',
+    options: opts
+  });
+}
+async function trapTypeOK(room, source, randomTarget = false) {
+  const target = await pickTrapTarget(room, source, 'OKって打って', randomTarget);
+  await runTimedTargetTrap(room, source, target, {
+    name: 'OKって打って', timeoutMs: 5000, defaultValue: 'safe', skin: 'trap-chat',
+    title: '本人確認',
+    message: '本人確認のため、下のチャット欄に「OK」と入力して送信してください。\n\n……本当に送る？',
+    options: []
+  });
+}
+
 async function trapSafe(room, p) {
   trackTrap(room, 'このカードは安全です', 'ゲーム内の「安全確認」に見せかけたUIトラップ。');
   pushState(room);
@@ -1342,6 +1472,19 @@ async function sendChat(room, player, text) {
   if (!player?.alive || player.away || g.roundLocked || !text) return;
   text = String(text).slice(0, 100);
   log(room, `💬 ${player.name}「${text}」`, 'normal');
+
+  // 《OKって打って》：専用TRAP表示中に本当にOKを送ると、その選択を「危険」として確定する。
+  if (text.trim().toUpperCase() === 'OK') {
+    for (const [requestId, prompt] of room.prompts.entries()) {
+      if (prompt.playerId === player.id && prompt.payload?.skin === 'trap-chat') {
+        clearTimeout(prompt.timer);
+        room.prompts.delete(requestId);
+        pushPromptClose(room, player.id, requestId, 'trap-chat');
+        prompt.resolve('danger');
+        return;
+      }
+    }
+  }
 
   const silenceRules = g.rules.filter((r) => r.kind === 'silence');
   if (silenceRules.length) {

@@ -51,6 +51,7 @@ let state = null;
 let selectedUid = null;
 let privacyMode = false;
 let currentPromptId = null;
+let trapPromptCleanup = null;
 let fxTimer = null;
 
 // --- ゆったりピアノ風BGM（Web Audioで生成。音源ファイル不要） ---
@@ -275,10 +276,12 @@ function connectEvents() {
     render();
   });
   source.addEventListener('prompt', (e) => showPrompt(JSON.parse(e.data)));
+  source.addEventListener('promptClose', (e) => closePromptFromServer(JSON.parse(e.data)));
   source.addEventListener('notice', (e) => showToast(JSON.parse(e.data).text || 'お知らせ'));
   source.addEventListener('fx', (e) => playFx(JSON.parse(e.data)));
   source.addEventListener('roomEnded', (e) => {
     const info = JSON.parse(e.data || '{}');
+    cleanupTrapPrompt();
     modal.classList.add('hidden');
     currentPromptId = null;
     clearSession();
@@ -441,14 +444,56 @@ function renderSelected() {
   actionHint.textContent = interrupt ? '割込カードは条件が起きた時に専用確認が出るわ。' : forced ? '強制カードは条件成立時に自動発動。' : state.canPlayTurnCard ? '準備OK。押したら戻せないわよ。' : '今は使えないわ。';
 }
 
+function cleanupTrapPrompt() {
+  if (typeof trapPromptCleanup === 'function') {
+    try { trapPromptCleanup(); } catch (_) {}
+  }
+  trapPromptCleanup = null;
+  const oldClose = modal.querySelector('.fake-trap-close');
+  if (oldClose) oldClose.remove();
+}
+function closePromptFromServer(info = {}) {
+  if (!currentPromptId || (info.requestId && info.requestId !== currentPromptId)) return;
+  cleanupTrapPrompt();
+  modal.classList.add('hidden');
+  currentPromptId = null;
+}
 function showPrompt(p) {
+  cleanupTrapPrompt();
   currentPromptId = p.requestId;
-  modal.classList.remove('trap-mode', 'trap-right-mode');
-  if (p.skin === 'trap') modal.classList.add('trap-mode');
-  if (p.skin === 'trap-right') modal.classList.add('trap-mode', 'trap-right-mode');
+  modal.classList.remove('trap-mode', 'trap-right-mode', 'trap-close-mode', 'trap-loading-mode', 'trap-still-mode', 'trap-chat-mode', 'trap-consent-mode', 'trap-reconnect-mode', 'trap-either-mode');
+  if (p.skin?.startsWith('trap')) modal.classList.add('trap-mode');
+  if (p.skin === 'trap-right') modal.classList.add('trap-right-mode');
+  if (p.skin === 'trap-close') modal.classList.add('trap-close-mode');
+  if (p.skin === 'trap-loading') modal.classList.add('trap-loading-mode');
+  if (p.skin === 'trap-still') modal.classList.add('trap-still-mode');
+  if (p.skin === 'trap-chat') modal.classList.add('trap-chat-mode');
+  if (p.skin === 'trap-consent') modal.classList.add('trap-consent-mode');
+  if (p.skin === 'trap-reconnect') modal.classList.add('trap-reconnect-mode');
+  if (p.skin === 'trap-either') modal.classList.add('trap-either-mode');
+
   modalTitle.textContent = p.title || '選択';
   modalBody.innerHTML = `<div class="prompt-message">${esc(p.message || '').replace(/\n/g, '<br>')}</div>`;
   modalActions.innerHTML = '';
+
+  const cleanups = [];
+  const runCleanup = () => cleanups.splice(0).forEach((fn) => { try { fn(); } catch (_) {} });
+  trapPromptCleanup = runCleanup;
+
+  if (p.kind === 'trap' && p.timeoutMs && p.timeoutMs <= 10000) {
+    const countdown = document.createElement('div');
+    countdown.className = 'trap-countdown';
+    modalBody.appendChild(countdown);
+    const started = performance.now();
+    const update = () => {
+      const left = Math.max(0, p.timeoutMs - (performance.now() - started));
+      countdown.textContent = `残り ${(left / 1000).toFixed(1)} 秒`;
+    };
+    update();
+    const timer = setInterval(update, 100);
+    cleanups.push(() => clearInterval(timer));
+  }
+
   (p.options || []).forEach((opt) => {
     const b = document.createElement('button');
     b.textContent = opt.label;
@@ -457,6 +502,78 @@ function showPrompt(p) {
     b.onclick = () => respondPrompt(p.requestId, opt.value);
     modalActions.appendChild(b);
   });
+
+  if (p.skin === 'trap-close') {
+    const head = modal.querySelector('.modal-head');
+    const x = document.createElement('button');
+    x.className = 'fake-trap-close';
+    x.type = 'button';
+    x.setAttribute('aria-label', '閉じる');
+    x.textContent = '×';
+    x.onclick = () => respondPrompt(p.requestId, 'danger');
+    head.appendChild(x);
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'trap-danger-choice fake-close-main';
+    closeBtn.textContent = '閉じる';
+    closeBtn.onclick = () => respondPrompt(p.requestId, 'danger');
+    modalActions.appendChild(closeBtn);
+  }
+
+  if (p.skin === 'trap-loading') {
+    const wrap = document.createElement('div');
+    wrap.className = 'fake-loading-track';
+    wrap.innerHTML = '<div class="fake-loading-bar"></div>';
+    modalBody.appendChild(wrap);
+  }
+
+  if (p.skin === 'trap-chat') {
+    const box = document.createElement('div');
+    box.className = 'trap-chat-box';
+    box.innerHTML = '<input class="trap-chat-input" maxlength="30" autocomplete="off" placeholder="チャットに入力"><button class="trap-chat-send" type="button">送信</button>';
+    modalBody.appendChild(box);
+    const input = box.querySelector('.trap-chat-input');
+    const send = box.querySelector('.trap-chat-send');
+    const submit = () => {
+      const text = input.value.trim();
+      if (!text) return;
+      action('chat', { text });
+      input.value = '';
+    };
+    send.onclick = submit;
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    setTimeout(() => input.focus(), 50);
+  }
+
+  if (p.skin === 'trap-still') {
+    const armTimer = setTimeout(() => {
+      let last = null;
+      let fired = false;
+      const trigger = () => {
+        if (fired || currentPromptId !== p.requestId) return;
+        fired = true;
+        respondPrompt(p.requestId, 'danger');
+      };
+      const onMove = (e) => {
+        const pt = { x: e.clientX || 0, y: e.clientY || 0 };
+        if (!last) { last = pt; return; }
+        if (Math.hypot(pt.x - last.x, pt.y - last.y) >= 12) trigger();
+        last = pt;
+      };
+      const onDown = () => trigger();
+      window.addEventListener('mousemove', onMove, true);
+      window.addEventListener('mousedown', onDown, true);
+      window.addEventListener('touchstart', onDown, true);
+      window.addEventListener('touchmove', onDown, true);
+      cleanups.push(() => {
+        window.removeEventListener('mousemove', onMove, true);
+        window.removeEventListener('mousedown', onDown, true);
+        window.removeEventListener('touchstart', onDown, true);
+        window.removeEventListener('touchmove', onDown, true);
+      });
+    }, 500);
+    cleanups.push(() => clearTimeout(armTimer));
+  }
+
   modal.classList.remove('hidden');
   if (p.kind === 'trap') showToast('TRAP UIがあなたの画面に侵入したわ。');
 }
@@ -465,9 +582,15 @@ async function respondPrompt(requestId, value) {
   [...modalActions.querySelectorAll('button')].forEach((b) => b.disabled = true);
   try {
     await post('/api/action', { ...session, action: 'promptResponse', payload: { requestId, value } });
+    cleanupTrapPrompt();
     modal.classList.add('hidden');
     currentPromptId = null;
-  } catch (e) { showToast(e.message); modal.classList.add('hidden'); currentPromptId = null; }
+  } catch (e) {
+    showToast(e.message);
+    cleanupTrapPrompt();
+    modal.classList.add('hidden');
+    currentPromptId = null;
+  }
 }
 
 function playFx(fx) {
