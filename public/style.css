@@ -274,7 +274,7 @@ button.danger-btn { color: var(--danger); }
 }
 @media (max-width: 720px) {
   .app-shell { padding: 14px; }
-  .player-list, .hand { grid-template-columns: 1fr; }
+  .player-list { grid-template-columns: 1fr; }
   .turn-banner { font-size: 28px; }
   .spotlight-name { font-size: 32px; }
   .spotlight-text { font-size: 18px; max-width: 100%; }
@@ -1340,4 +1340,51 @@ body.round-win-active .app-shell { filter:saturate(.82) brightness(.65); }
   .round-win-cat { display:none; }
   .round-win-point { font-size:18px; }
   .round-win-plaque { font-size:12px; }
+}
+
+
+/* ===== Online Beta 1.0.8 : Mobile hand swipe / turn recovery / hidden TRAP warning ===== */
+.trap-concealed {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 720px) {
+  .hand-zone {
+    overflow: hidden;
+  }
+  .hand-head {
+    align-items: flex-start;
+  }
+  .hand-meta {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .hand {
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 3px 10vw 14px 2px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 2px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: thin;
+  }
+  .hand .card {
+    flex: 0 0 min(82vw, 330px);
+    width: min(82vw, 330px);
+    min-height: 245px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .hand .card:hover {
+    transform: none;
+  }
 }

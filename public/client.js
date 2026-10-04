@@ -413,7 +413,8 @@ function renderRules() {
   state.rules.forEach((r) => { const d = document.createElement('div'); d.className = 'rule-pill'; d.textContent = r; ruleList.appendChild(d); });
 }
 function renderTraps() {
-  activeTrap.innerHTML = state.activeTrap ? `<div class="trap-card"><div class="name">${esc(state.activeTrap.name)}</div><div class="sub">${esc(state.activeTrap.description)}</div></div>` : '<div class="empty-box">いま表に出ているTRAPはないわ。</div>';
+  // 発動中TRAPの名前・説明を先に見せると罠の内容がバレるので、解決するまで警告表示しない。
+  activeTrap.innerHTML = state.activeTrap ? '<div class="empty-box trap-concealed"></div>' : '<div class="empty-box">いま表に出ているTRAPはないわ。</div>';
   trapHistory.innerHTML = state.trapHistory.length ? '' : '<div class="empty-box">TRAP履歴はまだないわ。</div>';
   state.trapHistory.forEach((t, i) => { const d = document.createElement('div'); d.className = 'trap-item'; d.innerHTML = `<strong>${i + 1}. ${esc(t.name)}</strong><div class="muted">${esc(t.description)}</div>`; trapHistory.appendChild(d); });
 }
@@ -424,8 +425,9 @@ function renderSpotlight() {
     return;
   }
   const c = state.lastPlayed;
+  const publicText = c.type === 'TRAP' ? '' : esc(c.text);
   spotlightCard.className = `spotlight-card ${c.type === 'TRAP' ? 'trap' : ''}`;
-  spotlightCard.innerHTML = `<div class="spotlight-type ${c.type === 'TRAP' ? 'trap' : ''}">${esc(c.type)}</div><div class="spotlight-name">${esc(c.name)}</div><div class="spotlight-text">${esc(c.text)}</div><div class="spotlight-meta">使用者：${esc(c.by || '--')}${c.target ? ` ｜ 対象：${esc(c.target)}` : ''}</div>`;
+  spotlightCard.innerHTML = `<div class="spotlight-type ${c.type === 'TRAP' ? 'trap' : ''}">${esc(c.type)}</div><div class="spotlight-name">${esc(c.name)}</div>${publicText ? `<div class="spotlight-text">${publicText}</div>` : ''}<div class="spotlight-meta">使用者：${esc(c.by || '--')}${c.target ? ` ｜ 対象：${esc(c.target)}` : ''}</div>`;
 }
 function renderHand() {
   handEl.innerHTML = '';
@@ -443,7 +445,8 @@ function renderHand() {
     d.onclick = () => { selectedUid = c.uid; renderHand(); renderSelected(); };
     handEl.appendChild(d);
   });
-  $('#handMeta').textContent = `(${state.myHand.length}枚) ｜ 初期手札 5枚 ｜ 通常系は原則1ターン1枚（効果で増加あり） ｜ 割込は条件成立時に別枠`; 
+  const swipeHint = window.matchMedia('(max-width: 720px)').matches ? ' ｜ ← 横にスライドして手札を見る →' : '';
+  $('#handMeta').textContent = `(${state.myHand.length}枚) ｜ 初期手札 5枚 ｜ 通常系は原則1ターン1枚（効果で増加あり） ｜ 割込は条件成立時に別枠${swipeHint}`; 
 }
 function renderSelected() {
   const c = state.myHand.find((x) => x.uid === selectedUid);
@@ -591,7 +594,6 @@ function showPrompt(p) {
   }
 
   modal.classList.remove('hidden');
-  if (p.kind === 'trap') showToast('TRAP UIがあなたの画面に侵入したわ。');
 }
 async function respondPrompt(requestId, value) {
   if (!session || currentPromptId !== requestId) return;

@@ -381,7 +381,7 @@ function startGame(room, testMode = false) {
     players: room.players,
     deck: [], discard: [], current: 0, round: 1, direction: 1, handLimit: null,
     drawnThisTurn: false, rules: [], gameOver: false, roundLocked: false,
-    winnerId: null, finalStandings: [], pendingRoundCheck: false,
+    winnerId: null, finalStandings: [], pendingRoundCheck: false, forceAdvanceTurn: false,
     logs: [], activeTrap: null, trapHistory: [], lastPlayed: null, lastResolvedCard: null,
     soulLinks: [], bannedNames: [],
   };
@@ -395,6 +395,7 @@ function startRound(room) {
   g.direction = 1;
   g.handLimit = null;
   g.drawnThisTurn = false;
+  g.forceAdvanceTurn = false;
   g.rules = [];
   g.roundLocked = false;
   g.activeTrap = null;
@@ -573,6 +574,7 @@ async function attemptEliminate(room, target, reason, source = null, { allowRefl
       log(room, `神は考え直した。${target.name}の脱落は続行。`, 'danger');
     }
   }
+  const eliminatedDuringOwnTurn = currentPlayer(room)?.id === target.id;
   target.alive = false;
   target.away = false;
   target.untargetable = false;
@@ -604,6 +606,9 @@ async function attemptEliminate(room, target, reason, source = null, { allowRefl
       await attemptEliminate(room, other, '運命共同体', target, { allowReflect: false, allowPrevent: true, allowRevenge: true });
     }
   }
+  // 自分の手番中に本当に脱落した場合は、割込・遺言などの処理が全部終わった後で手番を強制終了する。
+  // 《セーフ！》《神は言っている――》などで脱落を回避した場合はここまで来ない。
+  if (eliminatedDuringOwnTurn) g.forceAdvanceTurn = true;
   return true;
 }
 
@@ -1328,7 +1333,7 @@ async function trapDontClose(room, source, randomTarget = false) {
   await runTimedTargetTrap(room, source, target, {
     name: '閉じるな危険', timeoutMs: 5000, defaultValue: 'safe', skin: 'trap-close',
     title: '重要なお知らせ',
-    message: 'このウィンドウは5秒後に自動で閉じます。\n右上の「×」や「閉じる」は押さないでください。',
+    message: 'このウィンドウは5秒後に自動で閉じます。',
     options: []
   });
 }
@@ -1367,7 +1372,7 @@ async function trapReconnect(room, source, randomTarget = false) {
   await runTimedTargetTrap(room, source, target, {
     name: '再接続しますか？', timeoutMs: 6000, defaultValue: 'safe', skin: 'trap-reconnect',
     title: '⚠ 接続が不安定です',
-    message: 'サーバーとの接続が切断されました。\n6秒ほどお待ちください。\n\n※「再接続」を押す必要はありません。',
+    message: 'サーバーとの接続が切断されました。\n接続を復旧するには操作を選択してください。',
     options: [{ label: '再接続', value: 'danger', primary: true }]
   });
 }
@@ -1388,7 +1393,7 @@ async function trapTypeOK(room, source, randomTarget = false) {
   await runTimedTargetTrap(room, source, target, {
     name: 'OKって打って', timeoutMs: 5000, defaultValue: 'safe', skin: 'trap-chat',
     title: '本人確認',
-    message: '本人確認のため、下のチャット欄に「OK」と入力して送信してください。\n\n……本当に送る？',
+    message: '本人確認のため、下のチャット欄に「OK」と入力して送信してください。',
     options: []
   });
 }
@@ -1545,6 +1550,27 @@ async function sendChat(room, player, text) {
   pushState(room);
 }
 
+async function advanceTurnIfCurrentWasEliminated(room) {
+  const g = room.game;
+  if (!g?.forceAdvanceTurn || g.gameOver || g.roundLocked) return false;
+  // 割り込み確認などが残っている最中には手番を動かさない。
+  if (room.prompts.size > 0) return false;
+  const cur = currentPlayer(room);
+  // すでに通常のターン終了処理で次へ進んでいた場合は二重進行を防ぐ。
+  if (cur?.alive) {
+    g.forceAdvanceTurn = false;
+    return false;
+  }
+  if (checkRoundEnd(room)) {
+    g.forceAdvanceTurn = false;
+    return false;
+  }
+  g.forceAdvanceTurn = false;
+  log(room, '⏭ ターン中のプレイヤーが脱落したため、その手番を強制終了して次のプレイヤーへ。', 'rule');
+  await advanceTurn(room);
+  return true;
+}
+
 async function advanceTurn(room) {
   const g = room.game;
   const prev = currentPlayer(room);
@@ -1650,6 +1676,8 @@ async function handleAction(room, playerId, action, payload = {}) {
 
   if (action === 'chat') {
     await sendChat(room, player, payload.text || '');
+    await advanceTurnIfCurrentWasEliminated(room);
+    pushState(room);
     return;
   }
   if (room.busy) throw new Error('いまカード効果の処理中。ちょっと待ちなさい。');
@@ -1676,6 +1704,7 @@ async function handleAction(room, playerId, action, payload = {}) {
       default:
         throw new Error('知らない操作よ。');
     }
+    await advanceTurnIfCurrentWasEliminated(room);
   } finally {
     room.busy = false;
     pushState(room);
